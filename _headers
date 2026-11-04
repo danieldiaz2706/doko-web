@@ -1,0 +1,5 @@
+# Netlify: el panel de cocina no debe aparecer en Google y su service worker no se guarda en caché
+/cocina/*
+  X-Robots-Tag: noindex, nofollow
+/cocina/sw.js
+  Cache-Control: no-cache

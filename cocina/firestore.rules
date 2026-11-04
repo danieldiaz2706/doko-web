@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Reglas de Firestore para DOKO Cocina.
+// Solo se puede leer o escribir dentro de la "cocina" cuya clave coincide.
+// IMPORTANTE: cambia ESCRIBE_AQUI_TU_CLAVE por una clave propia (mínimo 16
+// letras y números) SOLO en la consola de Firebase, no en este archivo, para
+// que la clave nunca quede guardada en el código.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cocinas/{clave}/{documento=**} {
+      allow read, write: if clave == 'ESCRIBE_AQUI_TU_CLAVE';
+    }
+  }
+}

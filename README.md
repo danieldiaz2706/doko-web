@@ -55,6 +55,12 @@ Cualquiera de estas opciones sirve (todas aceptan repos privados):
 
 Después se le puede conectar un dominio propio (ej. `dokofood.com`).
 
+> 💡 En el plan gratis de Netlify cada publicación (deploy) gasta 15 de los 300 créditos del mes: conviene juntar varios cambios antes de subirlos.
+
+## 👨‍🍳 Panel de cocina
+
+En [`cocina/`](cocina/) está el panel interno para caja y cocina (`/cocina/`): crear y editar pedidos con toda la carta y verlos en tiempo real en cualquier dispositivo. Los pedidos se guardan en Firebase Firestore (gratis). Instrucciones para conectarlo en [`cocina/LEEME.md`](cocina/LEEME.md).
+
 ## 📁 Estructura
 
 ```
@@ -64,7 +70,9 @@ doko-web/
 ├── js/menu.js              # ⭐ Carta, precios, horario, WhatsApp (lo único que se edita)
 ├── js/app.js               # Lógica: carrito, horario en vivo, pedido por WhatsApp
 ├── manifest.webmanifest    # Para "instalar" la página en el celular
-└── assets/img/             # Logo, galería de Instagram y carta/ (fotos de la carta oficial)
+├── assets/img/             # Logo, galería de Instagram y carta/ (fotos de la carta oficial)
+├── cocina/                 # Panel de pedidos para caja y cocina (ver cocina/LEEME.md)
+└── _headers                # Reglas de Netlify (el panel no aparece en Google)
 ```
 
 ## 📝 Pendiente con DOKO
