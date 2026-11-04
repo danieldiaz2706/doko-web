@@ -213,10 +213,16 @@ function renderMenu() {
 /* Pestañas + scroll-spy */
 let spyLocked = false;
 function setActiveTab(id) {
-  $$('[data-tab]').forEach((t) => {
+  const bar = $('[data-tabs]');
+  $$('[data-tab]', bar).forEach((t) => {
     const on = t.dataset.tab === id;
+    if ((t.getAttribute('aria-selected') === 'true') === on) return;
     t.setAttribute('aria-selected', on);
-    if (on) t.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    if (!on) return;
+    // Centra la pestaña moviendo solo la barra de pestañas. scrollIntoView también movería
+    // la página y cortaría el scroll que el cliente está haciendo con la rueda del mouse.
+    const offset = t.getBoundingClientRect().left - bar.getBoundingClientRect().left - (bar.clientWidth - t.offsetWidth) / 2;
+    bar.scrollBy({ left: offset, behavior: 'smooth' });
   });
 }
 function setupTabs() {
