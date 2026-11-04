@@ -5,8 +5,8 @@
    horarios, número de WhatsApp o métodos de pago. No hace falta saber
    programar: cambia los textos/números entre comillas y guarda.
 
-   ⚠️ Los precios y descripciones actuales son ESTIMADOS a partir de lo que se
-   ve en el Instagram @dokofood_. Reemplázalos por los de la carta oficial.
+   Carta oficial de DOKO (productos, descripciones, precios y fotos).
+   La imagen completa de la carta está en assets/img/carta/carta-completa.jpg
    ========================================================================== */
 
 export const CONFIG = {
@@ -44,250 +44,157 @@ export const CONFIG = {
   locationNote: 'Somos cocina oculta: te compartimos la ubicación exacta cuando confirmes tu pedido.',
 };
 
-/* Adiciones que se pueden sumar a los productos (precio en pesos) */
+/* ADICIONALES de la carta (precio en pesos).
+   Se ofrecen al personalizar cada producto y también se pueden pedir solos. */
 export const EXTRAS = {
-  tocineta:   { name: 'Tocineta extra',            price: 4000 },
-  cheddar:    { name: 'Queso cheddar',             price: 3000 },
-  mozzarella: { name: 'Queso mozzarella gratinado', price: 4000 },
-  carne:      { name: 'Carne extra (150 g)',       price: 8000 },
-  codorniz:   { name: 'Huevos de codorniz (x3)',   price: 3000 },
-  pollo:      { name: 'Pollo desmechado cremoso',  price: 6000 },
-  salchicha:  { name: 'Salchicha extra',           price: 4000 },
-  maduro:     { name: 'Maduro',                    price: 3000 },
-  jalapenos:  { name: 'Jalapeños',                 price: 2000 },
-  papas:      { name: 'Porción de papas',          price: 6000 },
+  papas:      { name: 'Papas fritas',               price: 7900 },
+  pollo:      { name: 'Pollo desmechado en tártara', price: 8900 },
+  carne:      { name: 'Blend de carne',             price: 7900 },
+  pulledpork: { name: 'Pulled pork',                price: 11900 },
+  maicito:    { name: 'Maicito',                    price: 11900 },
+  madurito:   { name: 'Madurito',                   price: 6900 },
+  huevitos:   { name: 'Huevitos',                   price: 7900 },
+  tocineta:   { name: 'Tocineta',                   price: 7900 },
+  chorizo:    { name: 'Chorizo',                    price: 7900 },
+  americana:  { name: 'Salchicha americana',        price: 9900 },
+  ranchera:   { name: 'Salchicha ranchera',         price: 11900 },
+  pepinillos: { name: 'Pepinillos',                 price: 3900 },
+  ripio:      { name: 'Ripio',                      price: 2900 },
+  salsapina:  { name: 'Salsa piña',                 price: 5500 },
+  salsaamer:  { name: 'Salsa americana',            price: 5500 },
+  salsatart:  { name: 'Salsa tártara',              price: 5500 },
 };
+const TODOS_LOS_ADICIONALES = Object.keys(EXTRAS);
 
 /* Categorías en el orden en que aparecen en la carta.
-   icon: burger | fries | hotdog | combo | side | drink */
+   icon: burger | fries | addon.  compact: lista sencilla sin fotos */
 export const CATEGORIES = [
   { id: 'hamburguesas', name: 'Hamburguesas', icon: 'burger' },
   { id: 'salchipapas',  name: 'Salchipapas',  icon: 'fries' },
-  { id: 'perros',       name: 'Perros',       icon: 'hotdog' },
-  { id: 'combos',       name: 'Combos',       icon: 'combo' },
-  { id: 'acompanantes', name: 'Acompañantes', icon: 'side' },
-  { id: 'bebidas',      name: 'Bebidas',      icon: 'drink' },
+  { id: 'adicionales',  name: 'Adicionales',  icon: 'addon', compact: true },
 ];
-
-const SABORES_GASEOSA = ['Coca-Cola', 'Colombiana', 'Manzana', 'Uva', 'Naranja'];
 
 /* Productos
    - image: ruta de la foto (o null para usar el ícono de la categoría)
-   - badge: etiqueta opcional ('Top', 'Picante', 'Para compartir'…)
+   - badge: etiqueta opcional ('Top', 'En caja de pizza'…)
    - featured: true para mostrarlo en "Los que la rompen"
-   - options: elección obligatoria (ej. sabor de la gaseosa)
+   - options: elecciones obligatorias (ej. carne o pollo)
    - extras: ids de EXTRAS que se le pueden agregar
    - available: false para ocultarlo temporalmente (agotado) */
 export const PRODUCTS = [
   // ---------------- HAMBURGUESAS ----------------
   {
-    id: 'doble-brutal',
+    id: 'la-clasica',
     category: 'hamburguesas',
-    name: 'Doble Brutal',
-    desc: 'Doble carne smash, doble cheddar fundido, cebolla caramelizada y salsa BBQ de la casa en pan brioche.',
-    price: 27000,
-    image: 'assets/img/burger.jpg',
+    name: 'La Clásica DOKO',
+    desc: 'Carne o pollo desmechado en salsa tártara, queso cheddar o queso mozzarella, tocineta, vegetales y salsas.',
+    price: 19900,
+    image: 'assets/img/carta/la-clasica.jpg',
+    options: [
+      { label: 'Proteína', choices: ['Carne', 'Pollo desmechado en salsa tártara'] },
+      { label: 'Queso', choices: ['Queso cheddar', 'Queso mozzarella'] },
+    ],
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'dulce-brava',
+    category: 'hamburguesas',
+    name: 'La Dulce Brava',
+    desc: 'Carne, madurito, tocineta, queso mozzarella y salsas.',
+    price: 22900,
+    image: 'assets/img/carta/dulce-brava.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'la-mixta',
+    category: 'hamburguesas',
+    name: 'La Mixta DOKO',
+    desc: 'Carne, pollo desmechado en salsa tártara, tocineta, queso mozzarella, vegetales y salsas.',
+    price: 25900,
+    image: 'assets/img/carta/la-mixta.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'la-gringa',
+    category: 'hamburguesas',
+    name: 'La Gringa',
+    desc: 'Doble carne, doble queso cheddar, tocineta, pepinillos, cebolla caramelizada y salsa americana.',
+    price: 27900,
+    image: 'assets/img/carta/la-gringa.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'la-monster',
+    category: 'hamburguesas',
+    name: 'La Monster',
+    desc: 'Doble carne, pollo desmechado, queso cheddar, queso mozzarella, tocineta, vegetales y salsas.',
+    price: 31900,
+    image: 'assets/img/carta/la-monster.jpg',
     badge: 'Top',
     featured: true,
-    extras: ['tocineta', 'cheddar', 'carne', 'jalapenos', 'papas'],
-  },
-  {
-    id: 'doko-clasica',
-    category: 'hamburguesas',
-    name: 'DOKO Clásica',
-    desc: 'Carne de res 150 g, queso cheddar, lechuga, tomate, cebolla y salsa DOKO.',
-    price: 18000,
-    image: null,
-    extras: ['tocineta', 'cheddar', 'carne', 'jalapenos', 'papas'],
-  },
-  {
-    id: 'la-jaguar',
-    category: 'hamburguesas',
-    name: 'La Jaguar',
-    desc: 'Carne de res, cheddar y mozzarella, tocineta crocante, ensalada cremosa de la casa y salsa rosada.',
-    price: 26000,
-    image: null,
-    badge: 'De la casa',
-    extras: ['tocineta', 'cheddar', 'carne', 'jalapenos', 'papas'],
-  },
-  {
-    id: 'bacon-bbq',
-    category: 'hamburguesas',
-    name: 'Bacon BBQ',
-    desc: 'Carne de res, cheddar, tocineta crocante, aros de cebolla y salsa BBQ ahumada.',
-    price: 24000,
-    image: null,
-    extras: ['tocineta', 'cheddar', 'carne', 'jalapenos', 'papas'],
+    extras: TODOS_LOS_ADICIONALES,
   },
 
   // ---------------- SALCHIPAPAS ----------------
   {
-    id: 'salchi-doko',
+    id: 'la-atrevida',
     category: 'salchipapas',
-    name: 'Salchipapa DOKO',
-    desc: 'Papa a la francesa, salchicha, maduro, pollo desmechado cremoso, huevos de codorniz y salsa de ajo.',
-    price: 25000,
-    image: 'assets/img/salchipapa.jpg',
+    name: 'La Atrevida',
+    desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, queso mozzarella, huevitos, vegetales y salsas.',
+    price: 33900,
+    image: 'assets/img/carta/la-atrevida.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'la-exquisita',
+    category: 'salchipapas',
+    name: 'La Exquisita',
+    desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, maicito (queso fundido con trozos de tocineta y maíz), papitas ripio, huevitos, vegetales y salsas.',
+    price: 39900,
+    image: 'assets/img/carta/la-exquisita.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'la-bestia',
+    category: 'salchipapas',
+    name: 'La Bestia',
+    desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, carne de hamburguesa en trozos, madurito, queso mozzarella, huevitos y vegetales.',
+    price: 43900,
+    image: 'assets/img/carta/la-bestia.jpg',
     badge: 'Top',
     featured: true,
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'pollo', 'salchicha', 'maduro'],
+    extras: TODOS_LOS_ADICIONALES,
   },
   {
-    id: 'salchi-mixta',
+    id: 'la-traviesa',
     category: 'salchipapas',
-    name: 'Salchipapa Mixta',
-    desc: 'Papa, salchicha, carne de res en trozos, pollo, maduro, huevos de codorniz, queso y salsa blanca.',
-    price: 30000,
-    image: 'assets/img/mixta.jpg',
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'pollo', 'salchicha', 'maduro'],
+    name: 'La Traviesa',
+    desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, pulled pork, salchicha ranchera, madurito, queso mozzarella, huevitos y salsa tártara.',
+    price: 53900,
+    image: 'assets/img/carta/la-traviesa.jpg',
+    extras: TODOS_LOS_ADICIONALES,
   },
   {
-    id: 'salchi-clasica',
+    id: 'la-brutal',
     category: 'salchipapas',
-    name: 'Salchipapa Clásica',
-    desc: 'Papa a la francesa, salchicha, queso rallado y salsas de la casa.',
-    price: 14000,
-    image: null,
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'pollo', 'salchicha', 'maduro'],
-  },
-  {
-    id: 'salchi-familiar',
-    category: 'salchipapas',
-    name: 'Salchipapa Familiar',
-    desc: 'La Salchipapa DOKO en tamaño para compartir entre 3 y 4 personas.',
-    price: 55000,
-    image: null,
-    badge: 'Para compartir',
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'pollo', 'salchicha', 'maduro'],
-  },
-
-  // ---------------- PERROS ----------------
-  {
-    id: 'perro-doko',
-    category: 'perros',
-    name: 'Perro DOKO',
-    desc: 'Pan brioche, salchicha americana, pollo desmechado cremoso, tocineta crocante, huevo de codorniz y papita ripio.',
-    price: 18000,
-    image: 'assets/img/perro.jpg',
-    badge: 'Top',
+    name: 'La Brutal DOKO',
+    desc: 'En caja de pizza. Papas a la francesa, salchicha americana, chorizo, pollo desmechado en salsa tártara, carne de hamburguesa en trozos, madurito, queso mozzarella, huevitos, vegetales y salsas.',
+    price: 81900,
+    image: 'assets/img/carta/la-brutal.jpg',
+    badge: 'Caja de pizza',
     featured: true,
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'pollo', 'salchicha'],
-  },
-  {
-    id: 'perro-gigante',
-    category: 'perros',
-    name: 'Perro Gigante',
-    desc: 'Pan de 30 cm, doble salchicha, queso gratinado, tocineta y salsas DOKO.',
-    price: 24000,
-    image: null,
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'pollo', 'salchicha'],
-  },
-  {
-    id: 'perro-sencillo',
-    category: 'perros',
-    name: 'Perro Sencillo',
-    desc: 'Salchicha, queso, papita ripio, cebolla y salsas de la casa.',
-    price: 11000,
-    image: null,
-    extras: ['tocineta', 'mozzarella', 'codorniz', 'salchicha'],
+    extras: TODOS_LOS_ADICIONALES,
   },
 
-  // ---------------- COMBOS ----------------
-  {
-    id: 'combo-brutal',
-    category: 'combos',
-    name: 'Combo Brutal',
-    desc: 'Doble Brutal + papas a la francesa + gaseosa personal.',
-    price: 34000,
+  // ---------------- ADICIONALES (se generan solos desde EXTRAS) ----------------
+  ...Object.entries(EXTRAS).map(([id, extra]) => ({
+    id: `adicional-${id}`,
+    category: 'adicionales',
+    name: extra.name,
+    desc: 'Adicional',
+    price: extra.price,
     image: null,
-    badge: 'Ahorra',
-    options: { label: 'Sabor de la gaseosa', choices: SABORES_GASEOSA },
-    extras: ['tocineta', 'cheddar', 'carne'],
-  },
-  {
-    id: 'combo-clasico',
-    category: 'combos',
-    name: 'Combo Clásico',
-    desc: 'DOKO Clásica + papas a la francesa + gaseosa personal.',
-    price: 26000,
-    image: null,
-    options: { label: 'Sabor de la gaseosa', choices: SABORES_GASEOSA },
-    extras: ['tocineta', 'cheddar', 'carne'],
-  },
-  {
-    id: 'combo-parche',
-    category: 'combos',
-    name: 'Combo Parche',
-    desc: '2 DOKO Clásicas + 1 Salchipapa Clásica + gaseosa 1.5 L. Para el parche completo.',
-    price: 55000,
-    image: null,
-    badge: 'Para compartir',
-    options: { label: 'Sabor de la gaseosa', choices: SABORES_GASEOSA },
-    extras: ['tocineta', 'cheddar', 'codorniz'],
-  },
-
-  // ---------------- ACOMPAÑANTES ----------------
-  {
-    id: 'papas-francesa',
-    category: 'acompanantes',
-    name: 'Papas a la francesa',
-    desc: 'Porción de papas crocantes con salsas de la casa.',
-    price: 7000,
-    image: null,
-  },
-  {
-    id: 'papas-tocineta',
-    category: 'acompanantes',
-    name: 'Papas queso y tocineta',
-    desc: 'Papas a la francesa con queso fundido y tocineta crocante.',
-    price: 12000,
-    image: null,
-  },
-  {
-    id: 'aros-cebolla',
-    category: 'acompanantes',
-    name: 'Aros de cebolla',
-    desc: 'Aros de cebolla apanados, dorados y crocantes.',
-    price: 9000,
-    image: null,
-  },
-
-  // ---------------- BEBIDAS ----------------
-  {
-    id: 'gaseosa-personal',
-    category: 'bebidas',
-    name: 'Gaseosa personal',
-    desc: 'Botella de 400 ml bien fría.',
-    price: 4000,
-    image: null,
-    options: { label: 'Sabor', choices: SABORES_GASEOSA },
-  },
-  {
-    id: 'gaseosa-litro',
-    category: 'bebidas',
-    name: 'Gaseosa 1.5 L',
-    desc: 'Para compartir con el parche.',
-    price: 8000,
-    image: null,
-    options: { label: 'Sabor', choices: SABORES_GASEOSA },
-  },
-  {
-    id: 'jugo-hit',
-    category: 'bebidas',
-    name: 'Jugo Hit personal',
-    desc: 'Mango, mora o tropical.',
-    price: 4000,
-    image: null,
-    options: { label: 'Sabor', choices: ['Mango', 'Mora', 'Tropical'] },
-  },
-  {
-    id: 'agua',
-    category: 'bebidas',
-    name: 'Agua',
-    desc: 'Botella de 600 ml.',
-    price: 3000,
-    image: null,
-  },
+  })),
 ];
 
 /* Galería de Instagram (fotos en assets/img/galeria) */

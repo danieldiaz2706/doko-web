@@ -1,14 +1,14 @@
 # DOKO — Página web 🍔🍟🔥
 
-Página web oficial de **DOKO** (@dokofood_), cocina oculta de hamburguesas, salchipapas y perros en Cúcuta.
+Página web oficial de **DOKO** (@dokofood_), cocina oculta de hamburguesas y salchipapas en Cúcuta.
 *¡Donde está lo bueno!*
 
-Los clientes ven la carta, personalizan sus productos, arman el pedido y lo envían **directo al WhatsApp de DOKO**, ya organizado con productos, adiciones, total, dirección y método de pago.
+Los clientes ven la carta, personalizan sus productos, arman el pedido y lo envían **directo al WhatsApp de DOKO**, ya organizado con productos, adicionales, total, dirección y método de pago.
 
 ## ✨ Qué hace
 
-- **Carta interactiva** por categorías (Hamburguesas, Salchipapas, Perros, Combos, Acompañantes, Bebidas) con buscador y pestañas que siguen el scroll.
-- **Personalización**: adiciones con precio, elección obligatoria (ej. sabor de gaseosa), notas ("sin cebolla") y cantidad.
+- **Carta oficial interactiva**: 5 hamburguesas, 5 salchipapas y 16 adicionales, con las fotos de la carta, buscador y pestañas que siguen el scroll.
+- **Personalización**: adicionales con precio, elecciones obligatorias (ej. La Clásica: carne o pollo, cheddar o mozzarella), notas ("sin cebolla") y cantidad.
 - **Carrito** que se guarda en el celular del cliente aunque cierre la página.
 - **Checkout en 2 pasos**: domicilio o recoger, dirección, barrio, referencia, método de pago y "¿con cuánto pagas?" para el cambio.
 - **Pedido por WhatsApp** con número de orden (ej. `#DK-4821`) y mensaje listo para enviar.
@@ -28,12 +28,12 @@ Todo está en **un solo archivo**: [`js/menu.js`](js/menu.js). No hace falta toc
 | Marcar un producto como agotado | Agrega `available: false`                      |
 | Ponerlo en "Los que la rompen"  | `featured: true`                               |
 | Cambiar la foto                 | Sube la imagen a `assets/img/` y pon su ruta en `image` |
-| Cambiar precios de adiciones    | Objeto `EXTRAS`                                |
+| Cambiar precios de adicionales  | Objeto `EXTRAS` (se actualizan en toda la página) |
 | Cambiar horario                 | `CONFIG.schedule` (0 = domingo … 6 = sábado)   |
 | Cambiar WhatsApp                | `CONFIG.whatsapp` (solo números, con 57)       |
 | Métodos de pago                 | `CONFIG.paymentMethods`                        |
 
-> ⚠️ **Importante:** los productos, descripciones y precios actuales son **estimados** a partir de lo que se ve en el Instagram. Hay que reemplazarlos por los de la carta oficial antes de publicar.
+> ✅ Productos, descripciones, precios y fotos tomados de la **carta oficial de DOKO** (noviembre 2026). La carta completa en imagen está en `assets/img/carta/carta-completa.jpg` y se enlaza desde la página.
 
 ## 💻 Verla en el computador
 
@@ -64,14 +64,15 @@ doko-web/
 ├── js/menu.js              # ⭐ Carta, precios, horario, WhatsApp (lo único que se edita)
 ├── js/app.js               # Lógica: carrito, horario en vivo, pedido por WhatsApp
 ├── manifest.webmanifest    # Para "instalar" la página en el celular
-└── assets/img/             # Logo, fotos de productos y galería
+└── assets/img/             # Logo, galería de Instagram y carta/ (fotos de la carta oficial)
 ```
 
 ## 📝 Pendiente con DOKO
 
-- [ ] Carta oficial con precios reales
+- [x] Carta oficial con precios reales
 - [ ] Logo en alta resolución (PNG o SVG)
-- [ ] Fotos en buena calidad de cada producto
+- [ ] Fotos de la carta en alta resolución (las actuales salen del PDF y se ven algo suaves en pantallas grandes)
+- [ ] ¿Venden bebidas? (no aparecen en la carta)
 - [ ] Confirmar métodos de pago y si el "fin de semana" incluye el viernes
 - [ ] Dominio y hosting
 

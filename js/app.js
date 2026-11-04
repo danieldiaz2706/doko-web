@@ -8,7 +8,7 @@ import { CONFIG, CATEGORIES, PRODUCTS, EXTRAS, GALLERY } from './menu.js';
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-const CART_KEY = 'doko.cart.v1';
+const CART_KEY = 'doko.cart.v2';
 const CUSTOMER_KEY = 'doko.customer.v1';
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -47,6 +47,7 @@ const ICONS = {
   combo: '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8Z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/><path d="M10 14.5l1.5 1.5 3-3"/></svg>',
   side: '<svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="5"/><circle cx="9" cy="12" r="2.2"/><circle cx="16.5" cy="10" r="4"/><circle cx="16.5" cy="10" r="1.6"/></svg>',
   drink: '<svg viewBox="0 0 24 24"><path d="M6.5 8h11l-1.3 12a1 1 0 0 1-1 .9H8.8a1 1 0 0 1-1-.9L6.5 8Z"/><path d="M5.5 8h13"/><path d="M12 8l1.8-5H17"/><path d="M7.2 13h9.6"/></svg>',
+  addon: '<svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5.1 5.6.7-4.1 3.9 1 5.6L12 16.1l-4.9 2.7 1-5.6-4.1-3.9 5.6-.7L12 3.5Z"/></svg>',
 };
 const UI = {
   plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
@@ -158,6 +159,16 @@ function itemCard(p) {
     </article>`;
 }
 
+function addonRow(p) {
+  return `
+    <div class="addon" data-product="${p.id}">
+      <span class="addon__name">${escapeHtml(p.name)}</span>
+      <span class="addon__price">${money(p.price)}</span>
+      <span class="item__qty" data-qty-for="${p.id}"></span>
+      <button class="add-btn add-btn--sm" type="button" data-quick-add="${p.id}" aria-label="Agregar ${escapeHtml(p.name)}">${UI.plus}</button>
+    </div>`;
+}
+
 function renderMenu() {
   $('[data-tabs]').innerHTML = CATEGORIES.filter((c) => products.some((p) => p.category === c.id))
     .map(
@@ -169,10 +180,14 @@ function renderMenu() {
   $('[data-menu]').innerHTML = CATEGORIES.map((c) => {
     const list = products.filter((p) => p.category === c.id);
     if (!list.length) return '';
+    const body = c.compact
+      ? `<p class="menu__cat-sub">Súmalos a cualquier producto al personalizarlo, o pídelos aparte.</p>
+         <div class="addons">${list.map(addonRow).join('')}</div>`
+      : `<div class="menu__grid">${list.map(itemCard).join('')}</div>`;
     return `
       <section class="menu__cat" id="cat-${c.id}" data-cat="${c.id}" aria-label="${c.name}">
         <header class="menu__cat-head"><h3>${c.name}</h3><span>${list.length}</span></header>
-        <div class="menu__grid">${list.map(itemCard).join('')}</div>
+        ${body}
       </section>`;
   }).join('');
 
@@ -239,7 +254,7 @@ function applySearch(q) {
   let shown = 0;
   $$('[data-cat]').forEach((section) => {
     let count = 0;
-    $$('.item', section).forEach((card) => {
+    $$('[data-product]', section).forEach((card) => {
       const p = productById[card.dataset.product];
       const hit = !term || normalize(`${p.name} ${p.desc} ${categoryById[p.category].name}`).includes(term);
       card.hidden = !hit;
@@ -254,9 +269,9 @@ function applySearch(q) {
 /* ==========================================================================
    Carrito
    ========================================================================== */
-let cart = readStore(CART_KEY, []).filter((l) => productById[l.id]);
+let cart = readStore(CART_KEY, []).filter((l) => productById[l.id] && Array.isArray(l.options));
 
-const lineKey = (l) => [l.id, l.option || '', [...l.extras].sort().join('+'), (l.note || '').trim().toLowerCase()].join('|');
+const lineKey = (l) => [l.id, l.options.join('/'), [...l.extras].sort().join('+'), (l.note || '').trim().toLowerCase()].join('|');
 const unitPrice = (l) => productById[l.id].price + l.extras.reduce((sum, e) => sum + (EXTRAS[e]?.price || 0), 0);
 const cartCount = () => cart.reduce((n, l) => n + l.qty, 0);
 const cartTotal = () => cart.reduce((n, l) => n + unitPrice(l) * l.qty, 0);
@@ -266,8 +281,8 @@ function saveCart() {
   renderCart();
 }
 
-function addToCart({ id, qty = 1, option = null, extras = [], note = '' }) {
-  const line = { id, qty, option, extras: extras.filter((e) => EXTRAS[e]), note: note.trim() };
+function addToCart({ id, qty = 1, options = [], extras = [], note = '' }) {
+  const line = { id, qty, options, extras: extras.filter((e) => EXTRAS[e]), note: note.trim() };
   const existing = cart.find((l) => lineKey(l) === lineKey(line));
   if (existing) existing.qty += qty;
   else cart.push(line);
@@ -295,10 +310,10 @@ function renderCart() {
   // contador por producto en la carta
   const perProduct = {};
   cart.forEach((l) => (perProduct[l.id] = (perProduct[l.id] || 0) + l.qty));
-  $$('.item[data-product]').forEach((card) => {
+  $$('[data-menu] [data-product]').forEach((card) => {
     const n = perProduct[card.dataset.product] || 0;
     card.classList.toggle('in-cart', n > 0);
-    $('.item__qty', card).textContent = n ? `${n} en tu pedido` : '';
+    $('.item__qty', card).textContent = n ? (card.classList.contains('addon') ? `×${n}` : `${n} en tu pedido`) : '';
   });
 
   // lista
@@ -306,7 +321,8 @@ function renderCart() {
     .map((l, i) => {
       const p = productById[l.id];
       const meta = [
-        l.option ? escapeHtml(l.option) : '',
+        p.category === 'adicionales' ? 'Adicional' : '',
+        ...l.options.map(escapeHtml),
         ...l.extras.map((e) => `+ ${escapeHtml(EXTRAS[e].name)}`),
         l.note ? `<em>“${escapeHtml(l.note)}”</em>` : '',
       ].filter(Boolean);
@@ -378,28 +394,30 @@ function openProduct(id) {
       <p class="pd__desc">${escapeHtml(p.desc)}</p>
       <span class="price pd__price">${money(p.price)}</span>
 
-      ${
-        p.options
-          ? `<fieldset class="pd__group">
-              <legend>${escapeHtml(p.options.label)} <small>Obligatorio</small></legend>
-              ${p.options.choices
+      ${(p.options || [])
+        .map(
+          (group, g) => `<fieldset class="pd__group">
+              <legend>${escapeHtml(group.label)} <small>Elige una</small></legend>
+              ${group.choices
                 .map(
-                  (c, i) => `<label class="opt"><input type="radio" name="option" value="${escapeHtml(c)}" ${i === 0 ? 'checked' : ''}><span class="opt__box">${UI.check}</span><span class="opt__name">${escapeHtml(c)}</span></label>`
+                  (c, i) => `<label class="opt"><input type="radio" name="opt-${g}" value="${escapeHtml(c)}" ${i === 0 ? 'checked' : ''}><span class="opt__box">${UI.check}</span><span class="opt__name">${escapeHtml(c)}</span></label>`
                 )
                 .join('')}
             </fieldset>`
-          : ''
-      }
+        )
+        .join('')}
 
       ${
         extras.length
           ? `<fieldset class="pd__group">
-              <legend>Adiciones <small>Opcional</small></legend>
+              <legend>Adicionales <small>Opcional</small></legend>
+              <div class="pd__extras">
               ${extras
                 .map(
                   (e) => `<label class="opt"><input type="checkbox" name="extra" value="${e}"><span class="opt__box">${UI.check}</span><span class="opt__name">${escapeHtml(EXTRAS[e].name)}</span><span class="opt__price">+${money(EXTRAS[e].price)}</span></label>`
                 )
                 .join('')}
+              </div>
             </fieldset>`
           : ''
       }
@@ -427,7 +445,7 @@ function readProductForm() {
   return {
     id: activeProduct.id,
     qty: +$('[data-pd-qty]', productForm).textContent,
-    option: fd.get('option'),
+    options: (activeProduct.options || []).map((_, g) => fd.get(`opt-${g}`)),
     extras: fd.getAll('extra'),
     note: fd.get('note') || '',
   };
@@ -461,12 +479,14 @@ function setupProductDialog() {
       e.stopPropagation();
       const p = productById[quick.dataset.quickAdd];
       // Si tiene elección obligatoria, abrimos el detalle; si no, se agrega directo
-      if (p.options) openProduct(p.id);
+      if (p.options?.length) openProduct(p.id);
       else addToCart({ id: p.id });
       return;
     }
     const card = e.target.closest('[data-product]');
-    if (card && !card.closest('dialog')) openProduct(card.dataset.product);
+    if (!card || card.closest('dialog')) return;
+    if (card.classList.contains('addon')) addToCart({ id: card.dataset.product });
+    else openProduct(card.dataset.product);
   });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-product]')) {
@@ -597,7 +617,8 @@ function buildMessage(data, id) {
   lines.push('*Pedido:*');
   cart.forEach((l) => {
     const p = productById[l.id];
-    lines.push(`• ${l.qty}x ${p.name}${l.option ? ` (${l.option})` : ''} — ${money(unitPrice(l) * l.qty)}`);
+    const label = p.category === 'adicionales' ? `Adicional: ${p.name}` : p.name;
+    lines.push(`• ${l.qty}x ${label}${l.options.length ? ` (${l.options.join(', ')})` : ''} — ${money(unitPrice(l) * l.qty)}`);
     l.extras.forEach((e) => lines.push(`   + ${EXTRAS[e].name}`));
     if (l.note) lines.push(`   📝 ${l.note}`);
   });
@@ -738,6 +759,11 @@ function setupHeader() {
     toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
   };
   toggle.addEventListener('click', () => setNav(!nav.classList.contains('is-open')));
+
+  // En celular, el botón flotante de WhatsApp se oculta mientras se recorre la carta
+  new IntersectionObserver(([entry]) => document.body.classList.toggle('in-menu', entry.isIntersecting), {
+    rootMargin: '-20% 0px -20% 0px',
+  }).observe($('#carta'));
   nav.addEventListener('click', (e) => e.target.closest('a') && setNav(false));
   document.addEventListener('keydown', (e) => e.key === 'Escape' && setNav(false));
 }
