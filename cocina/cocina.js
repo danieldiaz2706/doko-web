@@ -5,6 +5,7 @@
 import { CONFIG, CATEGORIES, PRODUCTS, EXTRAS } from '../js/menu.js';
 import { FIREBASE } from './config.js';
 import { conectar, Conflicto } from './datos.js';
+import { resumirVentas, descargarExcel, fechaLarga } from './reporte.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -24,8 +25,26 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const normal = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const leer = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 const escribir = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento */ } };
-const hoyColombia = () => new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);
+/* ---------- Hora exacta de Colombia ----------
+   Se corrige con la hora del servidor por si el reloj del dispositivo está mal. */
+let desfase = 0;
+const ahora = () => Date.now() + desfase;
+async function sincronizarHora() {
+  try {
+    const t0 = Date.now();
+    const r = await fetch(`manifest.webmanifest?hora=${t0}`, { method: 'HEAD', cache: 'no-store' });
+    const t1 = Date.now();
+    const servidor = Date.parse(r.headers.get('date'));
+    // El encabezado Date tiene precisión de 1 s: solo se corrige si el desfase es notable
+    const d = servidor + 500 - (t0 + t1) / 2;
+    if (Number.isFinite(d)) desfase = Math.abs(d) > 1500 ? d : 0;
+  } catch { /* sin conexión: se usa el reloj del dispositivo */ }
+}
+const hoyColombia = () => new Date(ahora() - 5 * 3600e3).toISOString().slice(0, 10);
+const sumarDia = (fecha) => new Date(Date.parse(`${fecha}T12:00:00Z`) + 86400e3).toISOString().slice(0, 10);
+const restarDia = (fecha) => new Date(Date.parse(`${fecha}T12:00:00Z`) - 86400e3).toISOString().slice(0, 10);
 const hora = (ms) => new Date(ms).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Bogota' });
+const conMayuscula = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const ICON = {
   menos: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
   mas: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
@@ -45,7 +64,8 @@ function toast(texto, tipo = '') {
 /* ---------- Estado ---------- */
 const estado = {
   fuente: null,
-  fecha: hoyColombia(),
+  fecha: null, // fecha de la jornada abierta (la comparten todos los dispositivos)
+  jornada: null,
   pedidos: [],
   vistos: null, // ids ya mostrados (para avisar solo de los nuevos)
   revs: {},
@@ -128,16 +148,47 @@ function mostrarConexion(e) {
   $('span', el).textContent = estado.fuente?.modo === 'demo' && e === 'en-linea' ? 'Modo de prueba' : txt;
 }
 
+async function claveInvalida() {
+  if (estado.pidiendoClave) return;
+  estado.pidiendoClave = true;
+  estado.cancelar?.();
+  estado.cancelarJornada?.();
+  mostrarConexion('clave-invalida');
+  await pedirClave('La clave no es correcta. Revisa el enlace que te enviaron.');
+  location.reload();
+}
+
 function escuchar() {
   estado.cancelar?.();
-  estado.cancelar = estado.fuente.escuchar(estado.fecha, recibir, async (e) => {
+  estado.cancelar = estado.fuente.escuchar(estado.fecha, recibir, (e) => {
     mostrarConexion(e);
-    if (e === 'clave-invalida') {
-      estado.cancelar?.();
-      await pedirClave('La clave no es correcta. Revisa el enlace que te enviaron.');
-      location.reload();
-    }
+    if (e === 'clave-invalida') claveInvalida();
   });
+}
+
+/* La jornada abierta la comparten todos: cuando alguien la cierra, todos los
+   dispositivos se reinician solos para empezar el día siguiente. */
+async function alCambiarJornada(j) {
+  if (!j) {
+    if (!estado.fecha) {
+      estado.fecha = hoyColombia();
+      escuchar();
+    }
+    estado.fuente.abrirJornadaSiFalta(estado.fecha, ahora()).catch(() => {});
+    return;
+  }
+  if (estado.jornada && j.fecha !== estado.jornada.fecha) {
+    if (!estado.cerrandoYo) toast(`La jornada fue cerrada. Reiniciando para el ${fechaLarga(j.fecha)}…`, 'ok');
+    setTimeout(() => location.reload(), 2500);
+    return;
+  }
+  estado.jornada = j;
+  if (estado.fecha !== j.fecha) {
+    estado.fecha = j.fecha;
+    estado.vistos = null;
+    escuchar();
+  }
+  pintarJornada();
 }
 
 function recibir(lista) {
@@ -155,6 +206,7 @@ function recibir(lista) {
   estado.revs = Object.fromEntries(lista.map((p) => [p.id, p.rev]));
   estado.pedidos = lista;
   pintarTablero();
+  pintarJornada();
   if (editor.id) avisarSiCambioMientrasEdita();
 }
 
@@ -192,7 +244,7 @@ function pintarSonido() {
    Tablero
    ========================================================================== */
 function minutosDesde(ms) {
-  return Math.max(0, Math.floor((Date.now() - ms) / 60000));
+  return Math.max(0, Math.floor((ahora() - ms) / 60000));
 }
 
 function tarjeta(p) {
@@ -248,9 +300,9 @@ function pintarTablero() {
 }
 
 async function cambiarEstado(p, nuevoEstado) {
-  const ahora = Date.now();
-  const cambios = { estado: nuevoEstado, actualizadoEn: ahora, actualizadoPor: estado.nombre };
-  if (MARCA_TIEMPO[nuevoEstado]) cambios[MARCA_TIEMPO[nuevoEstado]] = ahora;
+  const t = ahora();
+  const cambios = { estado: nuevoEstado, actualizadoEn: t, actualizadoPor: estado.nombre };
+  if (MARCA_TIEMPO[nuevoEstado]) cambios[MARCA_TIEMPO[nuevoEstado]] = t;
   try {
     await estado.fuente.actualizar(p.id, cambios);
   } catch (e) {
@@ -281,13 +333,10 @@ function setupTablero() {
     $$('.tabs [data-tab]').forEach((x) => x.setAttribute('aria-selected', x === t));
   });
 
-  // Los minutos de espera se actualizan solos
+  // Los minutos de espera y el aviso de la jornada se actualizan solos
   setInterval(() => {
-    if (hoyColombia() !== estado.fecha) {
-      estado.fecha = hoyColombia();
-      estado.vistos = null;
-      escuchar();
-    } else pintarTablero();
+    pintarTablero();
+    pintarJornada();
   }, 30000);
 }
 
@@ -504,14 +553,14 @@ async function guardar() {
   }
   const boton = $('[data-guardar]');
   boton.disabled = true;
-  const ahora = Date.now();
+  const t = ahora();
   const datos = datosDelFormulario();
   try {
     if (editor.id) {
-      await estado.fuente.actualizar(editor.id, { ...datos, actualizadoEn: ahora, actualizadoPor: estado.nombre, editadoEn: ahora, editadoPor: estado.nombre }, editor.rev);
+      await estado.fuente.actualizar(editor.id, { ...datos, actualizadoEn: t, actualizadoPor: estado.nombre, editadoEn: t, editadoPor: estado.nombre }, editor.rev);
       toast(`Pedido #${editor.numero} actualizado`, 'ok');
     } else {
-      const { numero } = await estado.fuente.crear(estado.fecha, { ...datos, estado: 'nuevo', creadoEn: ahora, creadoPor: estado.nombre, actualizadoEn: ahora, actualizadoPor: estado.nombre });
+      const { numero } = await estado.fuente.crear(estado.fecha, { ...datos, estado: 'nuevo', creadoEn: t, creadoPor: estado.nombre, actualizadoEn: t, actualizadoPor: estado.nombre });
       toast(`Pedido #${numero} enviado a cocina`, 'ok');
     }
     editor.id = null;
@@ -580,12 +629,143 @@ function setupEditor() {
 }
 
 /* ==========================================================================
+   Jornada: reloj de Colombia, cierre del día y reportes en Excel
+   ========================================================================== */
+function pintarReloj() {
+  const t = new Date(ahora());
+  $('[data-fecha-larga]').textContent = conMayuscula(t.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }));
+  $('[data-hora]').textContent = t.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: 'America/Bogota' });
+}
+
+function pintarJornada() {
+  const el = $('[data-jornada-info]');
+  const j = estado.jornada;
+  if (!j) {
+    el.textContent = 'Abriendo jornada…';
+    return;
+  }
+  const hoy = hoyColombia();
+  const n = estado.pedidos.filter((p) => p.estado !== 'cancelado').length;
+  el.classList.toggle('is-warn', j.fecha < hoy);
+  el.textContent =
+    j.fecha < hoy ? `⚠️ Sigue abierta la jornada del ${fechaLarga(j.fecha)}. Ciérrala para empezar el día.`
+    : j.fecha > hoy ? `Próxima jornada: ${fechaLarga(j.fecha)} · ${n} ${n === 1 ? 'pedido' : 'pedidos'}`
+    : `Jornada de hoy · ${n} ${n === 1 ? 'pedido' : 'pedidos'}`;
+}
+
+const cierre = $('[data-cierre]');
+
+function abrirCierre() {
+  const r = resumirVentas(estado.pedidos);
+  const activos = estado.pedidos.filter((p) => p.estado in SIGUIENTE).length;
+  $('[data-cierre-body]').innerHTML = `
+    <p class="cierre__fecha">Jornada del <strong>${esc(fechaLarga(estado.fecha))}</strong></p>
+    <div class="cierre__kpis">
+      <div><span>Pedidos</span><strong>${r.pedidos}</strong></div>
+      <div><span>Cancelados</span><strong>${r.cancelados}</strong></div>
+      <div><span>Total vendido</span><strong>${money(r.total)}</strong></div>
+    </div>
+    <ul class="cierre__cats">
+      ${r.categorias.map((c) => `<li><span>${esc(c.nombre)}</span><span>${c.unidades} und.</span><strong>${money(c.total)}</strong></li>`).join('')}
+    </ul>
+    ${activos ? `<p class="cierre__aviso">Hay ${activos} ${activos === 1 ? 'pedido' : 'pedidos'} sin marcar como entregado. Al cerrar se marcarán como entregados y se cuentan en las ventas.</p>` : ''}
+    <p class="cierre__nota">Al cerrar se descarga el Excel del día y <strong>todos los dispositivos se reinician</strong> con el tablero vacío para la jornada siguiente. Los pedidos quedan guardados y puedes volver a descargar el reporte cuando quieras.</p>`;
+  $('[data-cierre-fecha]').max = hoyColombia();
+  $('[data-cierre-fecha]').value = restarDia(hoyColombia());
+  cierre.showModal();
+}
+
+async function conBoton(boton, tarea) {
+  const texto = boton.textContent;
+  boton.disabled = true;
+  boton.textContent = 'Generando…';
+  try {
+    await tarea();
+  } finally {
+    boton.disabled = false;
+    boton.textContent = texto;
+  }
+}
+
+async function cerrarJornada() {
+  const fecha = estado.fecha;
+  const t = ahora();
+  const activos = estado.pedidos.filter((p) => p.estado in SIGUIENTE);
+  const pedidos = estado.pedidos.map((p) => (p.estado in SIGUIENTE ? { ...p, estado: 'entregado', entregadoEn: t } : p));
+  try {
+    // 1) Primero el Excel: si no se puede generar, la jornada sigue abierta
+    const r = await descargarExcel({ fecha, pedidos, cerradaEn: t, cerradaPor: estado.nombre, generado: t });
+    // 2) Los pedidos que quedaron sin marcar pasan a entregados
+    await Promise.all(activos.map((p) => estado.fuente.actualizar(p.id, { estado: 'entregado', entregadoEn: t, actualizadoEn: t, actualizadoPor: estado.nombre })));
+    // 3) Se guarda el cierre y se abre la jornada siguiente para todos
+    const siguiente = { fecha: [hoyColombia(), sumarDia(fecha)].sort().pop(), abiertaEn: t };
+    estado.cerrandoYo = true;
+    await estado.fuente.cerrarJornada(fecha, {
+      fecha, cerradaEn: t, cerradaPor: estado.nombre, pedidos: r.pedidos, cancelados: r.cancelados, total: r.total,
+      porCategoria: Object.fromEntries(r.categorias.map((c) => [c.id, { unidades: c.unidades, total: c.total }])),
+    }, siguiente);
+    cierre.close();
+    toast(`Jornada cerrada · ${money(r.total)} vendidos. Reiniciando para el ${fechaLarga(siguiente.fecha)}…`, 'ok');
+    setTimeout(() => location.reload(), 2500);
+  } catch (e) {
+    console.error(e);
+    estado.cerrandoYo = false;
+    if (e instanceof Conflicto) {
+      toast('Otro dispositivo ya cerró esta jornada. Reiniciando…', 'bad');
+      setTimeout(() => location.reload(), 2500);
+    } else if (/Excel/.test(e.message)) toast('No se pudo generar el Excel (revisa el internet). La jornada sigue abierta.', 'bad');
+    else toast('No se pudo cerrar la jornada. Revisa la conexión e intenta de nuevo.', 'bad');
+  }
+}
+
+async function descargarActual() {
+  try {
+    await descargarExcel({ fecha: estado.fecha, pedidos: estado.pedidos, generado: ahora() });
+    toast('Excel descargado (la jornada sigue abierta)', 'ok');
+  } catch (e) {
+    console.error(e);
+    toast('No se pudo generar el Excel. Revisa el internet.', 'bad');
+  }
+}
+
+async function descargarAnterior() {
+  const fecha = $('[data-cierre-fecha]').value;
+  if (!fecha) return toast('Elige una fecha', 'bad');
+  try {
+    const [pedidos, jornada] = await Promise.all([estado.fuente.pedidosDe(fecha), estado.fuente.jornadaDe(fecha)]);
+    if (!pedidos.length) return toast(`No hay pedidos del ${fechaLarga(fecha)}`, 'bad');
+    await descargarExcel({ fecha, pedidos, cerradaEn: jornada?.cerradaEn, cerradaPor: jornada?.cerradaPor, generado: ahora() });
+    toast('Excel descargado', 'ok');
+  } catch (e) {
+    console.error(e);
+    toast('No se pudo descargar el reporte. Revisa la conexión.', 'bad');
+  }
+}
+
+function setupJornada() {
+  pintarReloj();
+  setInterval(pintarReloj, 1000);
+  setInterval(sincronizarHora, 30 * 60 * 1000);
+  $('[data-abrir-cierre]').addEventListener('click', abrirCierre);
+  $('[data-cerrar-cierre]').addEventListener('click', () => cierre.close());
+  $('[data-confirmar-cierre]').addEventListener('click', (e) => {
+    if (confirm(`¿Cerrar la jornada del ${fechaLarga(estado.fecha)}? Todos los dispositivos empezarán el día siguiente.`)) conBoton(e.currentTarget, cerrarJornada);
+  });
+  $('[data-solo-excel]').addEventListener('click', (e) => conBoton(e.currentTarget, descargarActual));
+  $('[data-descargar-anterior]').addEventListener('click', (e) => conBoton(e.currentTarget, descargarAnterior));
+}
+
+/* ==========================================================================
    Inicio
    ========================================================================== */
+const DEMO = new URLSearchParams(location.search).has('demo');
+
 async function iniciar() {
   setupTablero();
   setupEditor();
+  setupJornada();
   pintarSonido();
+  sincronizarHora().then(pintarReloj);
 
   $('[data-sonido]').addEventListener('click', () => {
     estado.sonido = !estado.sonido;
@@ -596,7 +776,7 @@ async function iniciar() {
   $('[data-cambiar-nombre]').addEventListener('click', pedirNombre);
 
   let clave = null;
-  if (FIREBASE) {
+  if (FIREBASE && !DEMO) {
     clave = claveDelEnlace() || (await pedirClave());
   } else {
     $('[data-demo]').hidden = false;
@@ -605,14 +785,18 @@ async function iniciar() {
   $('[data-mi-nombre]').textContent = estado.nombre;
 
   try {
-    estado.fuente = await conectar(FIREBASE, clave);
+    estado.fuente = await conectar(FIREBASE, clave, DEMO);
   } catch (e) {
     console.error(e);
     mostrarConexion('error');
     toast('No se pudo conectar con la base de datos', 'bad');
     return;
   }
-  escuchar();
+  // Primero la jornada abierta; con ella se escuchan los pedidos de ese día
+  estado.cancelarJornada = estado.fuente.escucharJornada(alCambiarJornada, (err) => {
+    if (err?.code === 'permission-denied') claveInvalida();
+    else mostrarConexion('error');
+  });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }

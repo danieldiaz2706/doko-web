@@ -31,6 +31,7 @@ async function fuenteFirebase(config, clave) {
     db = fs.getFirestore(app);
   }
   const pedidos = fs.collection(db, 'cocinas', clave, 'pedidos');
+  const estadoJornada = fs.doc(db, 'cocinas', clave, 'estado', 'jornada');
 
   return {
     modo: 'firebase',
@@ -78,6 +79,39 @@ async function fuenteFirebase(config, clave) {
     eliminar(id) {
       return fs.deleteDoc(fs.doc(pedidos, id));
     },
+
+    /* ---- Jornada: el día de trabajo abierto lo comparten todos los dispositivos ---- */
+    escucharJornada(alCambiar, alError) {
+      return fs.onSnapshot(estadoJornada, (snap) => alCambiar(snap.exists() ? snap.data() : null), alError);
+    },
+
+    abrirJornadaSiFalta(fecha, abiertaEn) {
+      return fs.runTransaction(db, async (tx) => {
+        const snap = await tx.get(estadoJornada);
+        if (!snap.exists()) tx.set(estadoJornada, { fecha, abiertaEn });
+      });
+    },
+
+    // Guarda el resumen del día y abre la jornada siguiente en una sola operación.
+    // Si otro dispositivo ya la cerró, no se cierra dos veces.
+    cerrarJornada(fecha, registro, siguiente) {
+      return fs.runTransaction(db, async (tx) => {
+        const snap = await tx.get(estadoJornada);
+        if (!snap.exists() || snap.data().fecha !== fecha) throw new Conflicto(snap.exists() ? snap.data() : null);
+        tx.set(fs.doc(db, 'cocinas', clave, 'jornadas', fecha), registro);
+        tx.set(estadoJornada, siguiente);
+      });
+    },
+
+    async pedidosDe(fecha) {
+      const snap = await fs.getDocs(fs.query(pedidos, fs.where('fecha', '==', fecha)));
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    },
+
+    async jornadaDe(fecha) {
+      const snap = await fs.getDoc(fs.doc(db, 'cocinas', clave, 'jornadas', fecha));
+      return snap.exists() ? snap.data() : null;
+    },
   };
 }
 
@@ -86,10 +120,11 @@ function fuenteDemo() {
   const KEY = 'doko.cocina.demo';
   const canal = 'BroadcastChannel' in window ? new BroadcastChannel('doko-cocina') : null;
   const leer = () => {
+    const vacio = { contadores: {}, pedidos: {}, jornada: null, jornadas: {} };
     try {
-      return JSON.parse(localStorage.getItem(KEY)) || { contadores: {}, pedidos: {} };
+      return { ...vacio, ...JSON.parse(localStorage.getItem(KEY)) };
     } catch {
-      return { contadores: {}, pedidos: {} };
+      return vacio;
     }
   };
   const oyentes = new Set();
@@ -137,9 +172,41 @@ function fuenteDemo() {
       delete db.pedidos[id];
       guardar(db);
     },
+
+    escucharJornada(alCambiar) {
+      const emitir = () => alCambiar(leer().jornada);
+      oyentes.add(emitir);
+      emitir();
+      return () => oyentes.delete(emitir);
+    },
+
+    async abrirJornadaSiFalta(fecha, abiertaEn) {
+      const db = leer();
+      if (!db.jornada) {
+        db.jornada = { fecha, abiertaEn };
+        guardar(db);
+      }
+    },
+
+    async cerrarJornada(fecha, registro, siguiente) {
+      const db = leer();
+      if (!db.jornada || db.jornada.fecha !== fecha) throw new Conflicto(db.jornada);
+      db.jornadas[fecha] = registro;
+      db.jornada = siguiente;
+      guardar(db);
+    },
+
+    async pedidosDe(fecha) {
+      return Object.values(leer().pedidos).filter((p) => p.fecha === fecha);
+    },
+
+    async jornadaDe(fecha) {
+      return leer().jornadas[fecha] || null;
+    },
   };
 }
 
-export async function conectar(config, clave) {
-  return config ? fuenteFirebase(config, clave) : fuenteDemo();
+// Con ?demo en la dirección se usa siempre el modo de prueba (para practicar sin tocar los pedidos reales).
+export async function conectar(config, clave, demo = false) {
+  return config && !demo ? fuenteFirebase(config, clave) : fuenteDemo();
 }

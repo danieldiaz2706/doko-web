@@ -9,9 +9,32 @@ computador, y se puede instalar como app ("Agregar a la pantalla de inicio").
 - Número de pedido consecutivo por día (#1, #2…), tiempo de espera y aviso de "EDITADO".
 - Sonido y vibración cuando llega un pedido nuevo.
 - Detecta si dos personas editan el mismo pedido a la vez.
+- Fecha y hora exactas de Colombia (se corrige con la hora del servidor).
+- **Cerrar jornada**: descarga el Excel del día y reinicia todos los dispositivos
+  con el tablero vacío para la jornada siguiente.
 
-Mientras `config.js` tenga `FIREBASE = null`, el panel funciona en **modo de
-prueba**: solo guarda en el navegador donde se usa.
+## Cierre de jornada y Excel
+
+Al terminar el día, toca **Cerrar jornada** (barra debajo del encabezado):
+
+1. Se descarga `DOKO_cierre_AAAA-MM-DD.xlsx` con dos hojas:
+   - **Resumen de ventas**: fecha, primer y último pedido, hora del cierre, total
+     vendido, ventas por categoría y por método de pago, y una sección por
+     **Hamburguesas**, **Salchipapas** y **Adicionales** con cada producto, su
+     precio, la cantidad y el total. Al final, el **recuento total** del día.
+   - **Pedidos**: cada pedido con hora, cliente, productos, pago, estado y total.
+2. Los pedidos que quedaron sin marcar se marcan como entregados.
+3. Todos los dispositivos se reinician solos con el tablero vacío.
+
+Los pedidos cancelados no suman en las ventas. Los adicionales cuentan tanto los
+que se piden solos como los que se agregan a un producto. En la misma ventana,
+**Reportes de días anteriores** vuelve a descargar el Excel de cualquier día.
+
+## Modo de prueba
+
+Abre `…/cocina/?demo` para practicar sin tocar los pedidos reales: todo se
+guarda solo en ese navegador. Si `config.js` tiene `FIREBASE = null`, el panel
+siempre funciona así.
 
 ## Conectar Firebase (una sola vez, ~10 minutos, gratis)
 
@@ -55,7 +78,8 @@ y abre `http://localhost:5174/cocina/`.
 |---|---|
 | `index.html`, `cocina.css` | Estructura y estilos del panel |
 | `cocina.js` | Tablero, editor de pedidos, sonido y acceso |
-| `datos.js` | Guarda y lee pedidos (Firebase o modo de prueba) |
+| `datos.js` | Guarda y lee pedidos y jornadas (Firebase o modo de prueba) |
+| `reporte.js` | Resumen de ventas y Excel del cierre |
 | `config.js` | Configuración de Firebase |
 | `firestore.rules` | Reglas de seguridad para pegar en Firebase (con tu clave) |
 | `sw.js`, `manifest.webmanifest` | Permiten instalar el panel como app |

@@ -72,6 +72,46 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
   .chip { max-width: 92px; }
 }
 
+/* ---------- Jornada (reloj de Colombia y cierre del día) ---------- */
+.jornada {
+  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding: 8px 14px;
+  background: var(--bg-2); border-bottom: 1px solid var(--line);
+}
+.jornada__reloj { display: flex; align-items: baseline; gap: 10px; }
+.jornada__reloj span { font-size: 13px; color: var(--muted); font-weight: 600; }
+.jornada__reloj strong { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.jornada__info { flex: 1; min-width: 160px; font-size: 13px; color: var(--muted); }
+.jornada__info.is-warn { color: #ffd98a; font-weight: 700; }
+.btn--cierre { color: #ffb3ad; border-color: rgba(239, 65, 54, 0.45); }
+.btn--cierre svg { font-size: 15px; }
+@media (max-width: 560px) {
+  .jornada__reloj { width: 100%; justify-content: space-between; }
+  .jornada__info { min-width: 0; }
+}
+
+.cierre { width: min(560px, 100vw); max-height: 100dvh; margin: auto; }
+.cierre__box { display: flex; flex-direction: column; max-height: 100dvh; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 18px; overflow: auto; }
+.cierre__body { display: grid; gap: 14px; padding: 14px; }
+.cierre__fecha { font-size: 15px; color: var(--muted); }
+.cierre__fecha strong { color: var(--text); }
+.cierre__kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cierre__kpis div { display: grid; gap: 2px; padding: 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
+.cierre__kpis span { font-size: 12px; color: var(--muted); }
+.cierre__kpis strong { font-size: 20px; }
+.cierre__kpis div:last-child strong { color: var(--gold); }
+.cierre__cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cierre__cats li { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; padding: 10px 12px; border-radius: 10px; background: var(--card); }
+.cierre__cats li span:nth-child(2) { color: var(--muted); }
+.cierre__aviso { padding: 10px 12px; border-radius: 10px; font-size: 14px; color: #ffe3a3; background: rgba(255, 194, 26, 0.1); border: 1px solid rgba(255, 194, 26, 0.3); }
+.cierre__nota { font-size: 13px; color: var(--muted); }
+.cierre__foot { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; padding: 12px 14px; border-top: 1px solid var(--line); }
+.cierre__foot .btn--primary { flex: 1 1 240px; }
+.cierre__anteriores { padding: 12px 14px 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.cierre__anteriores h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.cierre__fila { display: flex; gap: 8px; }
+.cierre__fila input { flex: 1; height: 38px; padding: 0 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--line-2); color-scheme: dark; }
+@media (max-width: 420px) { .cierre__kpis strong { font-size: 16px; } }
+
 .demo { margin: 10px 14px 0; padding: 10px 12px; border-radius: 10px; font-size: 13px; color: #ffe3a3; background: rgba(255, 194, 26, 0.1); border: 1px solid rgba(255, 194, 26, 0.3); }
 .demo code { font-size: 12px; }
 

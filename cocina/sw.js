@@ -1,7 +1,7 @@
 // DOKO Cocina — service worker: permite instalar el panel y abrirlo aunque falle el internet.
 // Siempre intenta la red primero para que los cambios de la carta lleguen enseguida.
-const CACHE = 'doko-cocina-v1';
-const ARCHIVOS = ['./', './index.html', './cocina.css', './cocina.js', './datos.js', './config.js', './manifest.webmanifest', '../js/menu.js', '../assets/img/logo-128.png', '../assets/img/logo-192.png'];
+const CACHE = 'doko-cocina-v2';
+const ARCHIVOS = ['./', './index.html', './cocina.css', './cocina.js', './datos.js', './reporte.js', './config.js', './manifest.webmanifest', '../js/menu.js', '../assets/img/logo-128.png', '../assets/img/logo-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ARCHIVOS)));

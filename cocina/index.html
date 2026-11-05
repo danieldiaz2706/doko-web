@@ -43,8 +43,19 @@
     </div>
   </header>
 
+  <div class="jornada">
+    <div class="jornada__reloj">
+      <span data-fecha-larga>—</span>
+      <strong data-hora>—</strong>
+    </div>
+    <span class="jornada__info" data-jornada-info>Abriendo jornada…</span>
+    <button class="btn btn--sm btn--cierre" type="button" data-abrir-cierre>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M7.5 6.5a7 7 0 1 0 9 0"/></svg>Cerrar jornada
+    </button>
+  </div>
+
   <div class="demo" data-demo hidden>
-    <strong>Modo de prueba.</strong> Los pedidos solo se guardan en este navegador. Para compartirlos con la cocina hay que conectar Firebase (ver <code>cocina/LEEME.md</code>).
+    <strong>Modo de prueba.</strong> Estos pedidos solo se guardan en este navegador y no llegan a la cocina.
   </div>
 
   <nav class="tabs" aria-label="Estados de los pedidos">
@@ -108,6 +119,30 @@
         <div class="total">Total <strong data-total>$0</strong></div>
         <button class="btn btn--primary" type="button" data-guardar>Enviar a cocina</button>
       </footer>
+    </div>
+  </dialog>
+
+  <!-- Cierre de jornada -->
+  <dialog class="cierre" data-cierre aria-labelledby="cierre-title">
+    <div class="cierre__box">
+      <header class="editor__head">
+        <h2 id="cierre-title">Cerrar jornada</h2>
+        <button class="icon-btn" type="button" data-cerrar-cierre aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="cierre__body" data-cierre-body></div>
+      <footer class="cierre__foot">
+        <button class="btn btn--ghost" type="button" data-solo-excel>Solo descargar Excel</button>
+        <button class="btn btn--primary" type="button" data-confirmar-cierre>Cerrar jornada y descargar Excel</button>
+      </footer>
+      <div class="cierre__anteriores">
+        <h3>Reportes de días anteriores</h3>
+        <div class="cierre__fila">
+          <input type="date" data-cierre-fecha aria-label="Fecha del reporte">
+          <button class="btn btn--sm" type="button" data-descargar-anterior>Descargar Excel</button>
+        </div>
+      </div>
     </div>
   </dialog>
 
