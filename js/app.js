@@ -78,8 +78,22 @@ function to12h(t) {
   const hh = h % 12 || 12;
   return `${hh}${m ? ':' + String(m).padStart(2, '0') : ''} ${suffix}`;
 }
+// Si el reloj o la zona horaria del dispositivo están mal, se corrige con la hora del servidor
+let clockOffset = 0;
+async function syncClock() {
+  try {
+    const t0 = Date.now();
+    const res = await fetch(`manifest.webmanifest?hora=${t0}`, { method: 'HEAD', cache: 'no-store' });
+    const t1 = Date.now();
+    // El encabezado Date tiene precisión de 1 s: solo se corrige si la diferencia es notable
+    const diff = Date.parse(res.headers.get('date')) + 500 - (t0 + t1) / 2;
+    if (Number.isFinite(diff)) clockOffset = Math.abs(diff) > 1500 ? diff : 0;
+  } catch {
+    /* sin conexión: se usa el reloj del dispositivo */
+  }
+}
 function nowInColombia() {
-  const d = new Date(Date.now() + CONFIG.utcOffset * 3600 * 1000);
+  const d = new Date(Date.now() + clockOffset + CONFIG.utcOffset * 3600 * 1000);
   return { day: d.getUTCDay(), minutes: d.getUTCHours() * 60 + d.getUTCMinutes() };
 }
 function getStatus() {
@@ -806,6 +820,11 @@ renderGallery();
 renderSchedule();
 renderStatus();
 setInterval(renderStatus, 60 * 1000);
+syncClock().then(() => {
+  if (!clockOffset) return;
+  renderSchedule();
+  renderStatus();
+});
 setupHeader();
 setupMarquee();
 setupTabs();
