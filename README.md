@@ -1,6 +1,6 @@
 # DOKO — Página web 🍔🍟🔥
 
-Página web oficial de **DOKO** (@dokofood_), cocina oculta de hamburguesas y salchipapas en Cúcuta.
+Página web oficial de **DOKO** (@dokofood_), cocina oculta de hamburguesas, perros y salchipapas en Cúcuta.
 *¡Donde está lo bueno!*
 
 Los clientes ven la carta, personalizan sus productos, arman el pedido y lo envían **directo al WhatsApp de DOKO**, ya organizado con productos, adicionales, total, dirección y método de pago.

@@ -203,7 +203,7 @@ export const PRODUCTS = [
     id: 'perro-pollo',
     category: 'perros',
     name: 'Perro de Pollo DOKO',
-    desc: 'Pan, salchicha americana, pollo, queso doble crema y huevo de codorniz.',
+    desc: 'Pan, salchicha americana, pollo, queso doble crema, tocineta y huevo de codorniz.',
     price: 17900,
     image: 'assets/img/carta/perro-pollo.jpg',
     extras: TODOS_LOS_ADICIONALES,
