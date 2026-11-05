@@ -112,6 +112,12 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2
 .cierre__fila input { flex: 1; height: 38px; padding: 0 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--line-2); color-scheme: dark; }
 @media (max-width: 420px) { .cierre__kpis strong { font-size: 16px; } }
 
+.activar-sonido {
+  display: block; width: calc(100% - 28px); margin: 10px 14px 0; padding: 12px 14px; border-radius: 12px;
+  font-weight: 800; font-size: 15px; color: #1f1300; background: var(--gold); animation: llamar 1.6s ease-in-out infinite;
+}
+@keyframes llamar { 50% { box-shadow: 0 0 0 6px rgba(255, 194, 26, 0.25); } }
+
 .demo { margin: 10px 14px 0; padding: 10px 12px; border-radius: 10px; font-size: 13px; color: #ffe3a3; background: rgba(255, 194, 26, 0.1); border: 1px solid rgba(255, 194, 26, 0.3); }
 .demo code { font-size: 12px; }
 

@@ -7,7 +7,10 @@ computador, y se puede instalar como app ("Agregar a la pantalla de inicio").
 - Crear y editar pedidos con todos los productos, opciones y adicionales de la carta (`js/menu.js`).
 - Estados: **Nuevos → Preparando → Listos → Entregados** (y Cancelados).
 - Número de pedido consecutivo por día (#1, #2…), tiempo de espera y aviso de "EDITADO".
-- Sonido y vibración cuando llega un pedido nuevo.
+- Aviso sonoro fuerte (y vibración) en los demás dispositivos: **pedido nuevo = 3
+  campanitas**, **listo = 2**, **entregado, cancelado o editado = 1**. El sonido
+  viene encendido; si el navegador lo bloquea aparece un botón amarillo para
+  activarlo, y mientras está encendido la pantalla no se apaga sola.
 - Detecta si dos personas editan el mismo pedido a la vez.
 - Fecha y hora exactas de Colombia (se corrige con la hora del servidor).
 - **Cerrar jornada**: descarga el Excel del día y reinicia todos los dispositivos

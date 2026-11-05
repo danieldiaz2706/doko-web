@@ -6,6 +6,7 @@ import { CONFIG, CATEGORIES, PRODUCTS, EXTRAS } from '../js/menu.js';
 import { FIREBASE } from './config.js';
 import { conectar, Conflicto } from './datos.js';
 import { resumirVentas, descargarExcel, fechaLarga } from './reporte.js';
+import { crearSalida, campanita } from './sonido.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -25,6 +26,16 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const normal = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const leer = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 const escribir = (k, v) => { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento */ } };
+// Identifica esta pestaña: así no suena el aviso de un cambio que hizo uno mismo
+const DISPOSITIVO = (() => {
+  try {
+    let id = sessionStorage.getItem('doko.cocina.dispositivo');
+    if (!id) sessionStorage.setItem('doko.cocina.dispositivo', (id = Math.random().toString(36).slice(2, 10)));
+    return id;
+  } catch {
+    return Math.random().toString(36).slice(2, 10);
+  }
+})();
 /* ---------- Hora exacta de Colombia ----------
    Se corrige con la hora del servidor por si el reloj del dispositivo está mal. */
 let desfase = 0;
@@ -67,10 +78,9 @@ const estado = {
   fecha: null, // fecha de la jornada abierta (la comparten todos los dispositivos)
   jornada: null,
   pedidos: [],
-  vistos: null, // ids ya mostrados (para avisar solo de los nuevos)
-  revs: {},
+  previos: null, // estado y versión de cada pedido ya mostrado (para avisar solo de los cambios)
   nombre: leer(LS.nombre) || '',
-  sonido: leer(LS.sonido) === '1',
+  sonido: leer(LS.sonido) !== '0', // encendido salvo que alguien lo apague
   cancelar: null,
 };
 
@@ -185,59 +195,103 @@ async function alCambiarJornada(j) {
   estado.jornada = j;
   if (estado.fecha !== j.fecha) {
     estado.fecha = j.fecha;
-    estado.vistos = null;
+    estado.previos = null;
     escuchar();
   }
   pintarJornada();
 }
 
+// ¿El cambio lo hizo otro dispositivo? (los pedidos viejos solo traen el nombre)
+const deOtro = (dispositivo, nombre) => (dispositivo ? dispositivo !== DISPOSITIVO : nombre !== estado.nombre);
+
+// Avisos: nuevo pedido = 3 campanitas, listo = 2, entregado / cancelado / editado = 1
 function recibir(lista) {
-  const antes = estado.vistos;
-  estado.vistos = new Set(lista.map((p) => p.id));
+  const antes = estado.previos;
+  estado.previos = new Map(lista.map((p) => [p.id, { estado: p.estado, rev: p.rev }]));
   if (antes) {
     for (const p of lista) {
-      if (!antes.has(p.id) && p.creadoPor !== estado.nombre) {
-        avisar(`Nuevo pedido #${p.numero}${p.cliente ? ' · ' + p.cliente : ''}`, p.id);
-      } else if (estado.revs[p.id] && p.rev > estado.revs[p.id] && p.editadoPor !== estado.nombre) {
-        avisar(`Pedido #${p.numero} editado por ${p.editadoPor || 'alguien'}`, p.id);
+      const previo = antes.get(p.id);
+      const cliente = p.cliente ? ' · ' + p.cliente : '';
+      if (!previo) {
+        if (deOtro(p.creadoDispositivo, p.creadoPor)) avisar(`Nuevo pedido #${p.numero}${cliente}`, p.id, 3);
+      } else if (previo.estado !== p.estado) {
+        if (!deOtro(p.actualizadoDispositivo, p.actualizadoPor)) continue;
+        if (p.estado === 'listo') avisar(`Pedido #${p.numero} LISTO para entregar${cliente}`, p.id, 2);
+        else if (p.estado === 'entregado') avisar(`Pedido #${p.numero} entregado`, p.id, 1);
+        else if (p.estado === 'cancelado') avisar(`Pedido #${p.numero} CANCELADO`, p.id, 1);
+      } else if (p.rev > previo.rev && deOtro(p.editadoDispositivo, p.editadoPor)) {
+        avisar(`Pedido #${p.numero} editado por ${p.editadoPor || 'alguien'}`, p.id, 1);
       }
     }
   }
-  estado.revs = Object.fromEntries(lista.map((p) => [p.id, p.rev]));
   estado.pedidos = lista;
   pintarTablero();
   pintarJornada();
   if (editor.id) avisarSiCambioMientrasEdita();
 }
 
-/* ---------- Sonido y vibración para pedidos nuevos ---------- */
+/* ---------- Sonido, vibración y pantalla encendida ---------- */
 let audio = null;
-function pitar() {
-  if (!estado.sonido) return;
+let salida = null;
+
+// Los navegadores solo dejan sonar después de que alguien toca la pantalla
+function prepararAudio() {
   try {
-    audio ||= new AudioContext();
-    const t = audio.currentTime;
-    [[0, 784], [0.2, 1046]].forEach(([d, f]) => {
-      const o = audio.createOscillator();
-      const g = audio.createGain();
-      o.frequency.value = f;
-      g.gain.setValueAtTime(0.0001, t + d);
-      g.gain.exponentialRampToValueAtTime(0.35, t + d + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.18);
-      o.connect(g).connect(audio.destination);
-      o.start(t + d);
-      o.stop(t + d + 0.2);
-    });
+    if (!audio) {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      salida = crearSalida(audio);
+    }
+    if (audio.state !== 'running') audio.resume().then(pintarSonido, () => {});
   } catch { /* sin audio */ }
-  navigator.vibrate?.([120, 60, 120]);
 }
-function avisar(texto, id) {
+
+function pitar(veces = 1) {
+  if (!estado.sonido) return;
+  prepararAudio();
+  try { campanita(audio, salida, veces); } catch { /* sin audio */ }
+  navigator.vibrate?.(Array.from({ length: veces }, () => [220, 120]).flat());
+}
+
+function avisar(texto, id, veces = 1) {
   toast(texto, 'ok');
-  pitar();
+  pitar(veces);
   requestAnimationFrame(() => $(`[data-pedido="${id}"]`)?.classList.add('is-flash'));
 }
+
+// Con el sonido encendido, la pantalla no se apaga sola (si el navegador lo permite)
+let bloqueoPantalla = null;
+async function mantenerPantalla() {
+  if (!estado.sonido || document.visibilityState !== 'visible' || bloqueoPantalla || !navigator.wakeLock) return;
+  try {
+    bloqueoPantalla = await navigator.wakeLock.request('screen');
+    bloqueoPantalla.addEventListener('release', () => { bloqueoPantalla = null; });
+  } catch { /* no permitido */ }
+}
+
 function pintarSonido() {
   $('[data-sonido]').setAttribute('aria-pressed', estado.sonido);
+  $('[data-activar-sonido]').hidden = !estado.sonido || audio?.state === 'running';
+}
+
+function setupSonido() {
+  $('[data-sonido]').addEventListener('click', () => {
+    estado.sonido = !estado.sonido;
+    escribir(LS.sonido, estado.sonido ? '1' : '0');
+    if (estado.sonido) pitar(1); // prueba del volumen
+    else bloqueoPantalla?.release();
+    pintarSonido();
+    mantenerPantalla();
+  });
+  $('[data-activar-sonido]').addEventListener('click', () => pitar(1));
+  // Cualquier toque desbloquea el audio y mantiene la pantalla encendida
+  const desbloquear = () => {
+    if (estado.sonido) prepararAudio();
+    mantenerPantalla();
+  };
+  document.addEventListener('pointerdown', desbloquear);
+  document.addEventListener('keydown', desbloquear);
+  document.addEventListener('visibilitychange', mantenerPantalla);
+  pintarSonido();
 }
 
 /* ==========================================================================
@@ -301,7 +355,7 @@ function pintarTablero() {
 
 async function cambiarEstado(p, nuevoEstado) {
   const t = ahora();
-  const cambios = { estado: nuevoEstado, actualizadoEn: t, actualizadoPor: estado.nombre };
+  const cambios = { estado: nuevoEstado, actualizadoEn: t, actualizadoPor: estado.nombre, actualizadoDispositivo: DISPOSITIVO };
   if (MARCA_TIEMPO[nuevoEstado]) cambios[MARCA_TIEMPO[nuevoEstado]] = t;
   try {
     await estado.fuente.actualizar(p.id, cambios);
@@ -557,10 +611,16 @@ async function guardar() {
   const datos = datosDelFormulario();
   try {
     if (editor.id) {
-      await estado.fuente.actualizar(editor.id, { ...datos, actualizadoEn: t, actualizadoPor: estado.nombre, editadoEn: t, editadoPor: estado.nombre }, editor.rev);
+      await estado.fuente.actualizar(editor.id, {
+        ...datos, actualizadoEn: t, actualizadoPor: estado.nombre, actualizadoDispositivo: DISPOSITIVO,
+        editadoEn: t, editadoPor: estado.nombre, editadoDispositivo: DISPOSITIVO,
+      }, editor.rev);
       toast(`Pedido #${editor.numero} actualizado`, 'ok');
     } else {
-      const { numero } = await estado.fuente.crear(estado.fecha, { ...datos, estado: 'nuevo', creadoEn: t, creadoPor: estado.nombre, actualizadoEn: t, actualizadoPor: estado.nombre });
+      const { numero } = await estado.fuente.crear(estado.fecha, {
+        ...datos, estado: 'nuevo', creadoEn: t, creadoPor: estado.nombre, creadoDispositivo: DISPOSITIVO,
+        actualizadoEn: t, actualizadoPor: estado.nombre, actualizadoDispositivo: DISPOSITIVO,
+      });
       toast(`Pedido #${numero} enviado a cocina`, 'ok');
     }
     editor.id = null;
@@ -696,7 +756,7 @@ async function cerrarJornada() {
     // 1) Primero el Excel: si no se puede generar, la jornada sigue abierta
     const r = await descargarExcel({ fecha, pedidos, cerradaEn: t, cerradaPor: estado.nombre, generado: t });
     // 2) Los pedidos que quedaron sin marcar pasan a entregados
-    await Promise.all(activos.map((p) => estado.fuente.actualizar(p.id, { estado: 'entregado', entregadoEn: t, actualizadoEn: t, actualizadoPor: estado.nombre })));
+    await Promise.all(activos.map((p) => estado.fuente.actualizar(p.id, { estado: 'entregado', entregadoEn: t, actualizadoEn: t, actualizadoPor: estado.nombre, actualizadoDispositivo: DISPOSITIVO })));
     // 3) Se guarda el cierre y se abre la jornada siguiente para todos
     const siguiente = { fecha: [hoyColombia(), sumarDia(fecha)].sort().pop(), abiertaEn: t };
     estado.cerrandoYo = true;
@@ -764,15 +824,8 @@ async function iniciar() {
   setupTablero();
   setupEditor();
   setupJornada();
-  pintarSonido();
+  setupSonido();
   sincronizarHora().then(pintarReloj);
-
-  $('[data-sonido]').addEventListener('click', () => {
-    estado.sonido = !estado.sonido;
-    escribir(LS.sonido, estado.sonido ? '1' : '0');
-    pintarSonido();
-    if (estado.sonido) pitar(); // prueba y desbloquea el audio en el navegador
-  });
   $('[data-cambiar-nombre]').addEventListener('click', pedirNombre);
 
   let clave = null;
