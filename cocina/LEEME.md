@@ -22,9 +22,10 @@ Al terminar el día, toca **Cerrar jornada** (barra debajo del encabezado):
 
 1. Se descarga `DOKO_cierre_AAAA-MM-DD.xlsx` con dos hojas:
    - **Resumen de ventas**: fecha, primer y último pedido, hora del cierre, total
-     vendido, ventas por categoría y por método de pago, y una sección por
-     **Hamburguesas**, **Salchipapas** y **Adicionales** con cada producto, su
-     precio, la cantidad y el total. Al final, el **recuento total** del día.
+     vendido, ventas por categoría y por método de pago, y una sección por cada
+     categoría de la carta (**Hamburguesas**, **Salchipapas**, **Perros**,
+     **Bebidas** y **Adicionales**) con cada producto, su precio, la cantidad y el
+     total. Al final, el **recuento total** del día.
    - **Pedidos**: cada pedido con hora, cliente, productos, pago, estado y total.
 2. Los pedidos que quedaron sin marcar se marcan como entregados.
 3. Todos los dispositivos se reinician solos con el tablero vacío.

@@ -19,6 +19,8 @@ const BOTON = { nuevo: ['Empezar', 'btn--gold'], preparando: ['Listo', 'btn--ok'
 
 const productos = PRODUCTS.filter((p) => p.available !== false);
 const productoPorId = Object.fromEntries(productos.map((p) => [p.id, p]));
+// Sin elecciones ni adicionales (bebidas y adicionales sueltos): se agregan con un toque
+const sencillo = (p) => !p.options?.length && !p.extras?.length;
 
 /* ---------- Utilidades ---------- */
 const money = (n) => '$' + Math.round(n).toLocaleString('es-CO');
@@ -546,7 +548,7 @@ function pintarPedido() {
           <div><div class="it__name">${esc(it.nombre)}</div>${det || it.nota ? `<div class="it__det">${det}${it.nota ? `${det ? ' · ' : ''}<em>“${esc(it.nota)}”</em>` : ''}</div>` : ''}</div>
           <div class="it__price">${money(precioUnidad(it) * it.cantidad)}</div>
           <div class="it__tools">
-            ${productoPorId[it.pid] && productoPorId[it.pid].category !== 'adicionales' ? '<button class="btn btn--sm btn--ghost" type="button" data-item-editar>Personalizar</button>' : ''}
+            ${productoPorId[it.pid] && !sencillo(productoPorId[it.pid]) ? '<button class="btn btn--sm btn--ghost" type="button" data-item-editar>Personalizar</button>' : ''}
             <button class="btn btn--sm btn--ghost btn--danger" type="button" data-item-quitar>Quitar</button>
           </div>
         </div>`;
@@ -668,13 +670,15 @@ function setupEditor() {
     const p = productoPorId[fila.dataset.prod];
     // "+" agrega directo; tocar el producto abre sus opciones (o si tiene elecciones obligatorias)
     if (rapido && !p.options?.length) agregarItem(itemBase(p));
-    else if (p.category === 'adicionales') agregarItem(itemBase(p));
+    else if (sencillo(p)) agregarItem(itemBase(p));
     else abrirConfig(p.id);
   });
   $('[data-prods]').addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-prod]')) {
       e.preventDefault();
-      abrirConfig(e.target.dataset.prod);
+      const p = productoPorId[e.target.dataset.prod];
+      if (sencillo(p)) agregarItem(itemBase(p));
+      else abrirConfig(p.id);
     }
   });
   $('[data-guardar]').addEventListener('click', guardar);

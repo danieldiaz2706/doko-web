@@ -8,7 +8,8 @@ import { CATEGORIES, PRODUCTS } from '../js/menu.js';
 const EXCELJS = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
 const TZ = 'America/Bogota';
 const productoPorId = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
-const ORDEN = ['hamburguesas', 'salchipapas', 'adicionales'];
+// Una sección por cada categoría de la carta, en el mismo orden (las nuevas aparecen solas)
+const ORDEN = CATEGORIES.map((c) => c.id);
 const NOMBRE_CAT = { ...Object.fromEntries(CATEGORIES.map((c) => [c.id, c.name])), otros: 'Otros' };
 
 export const fechaLarga = (fecha) =>

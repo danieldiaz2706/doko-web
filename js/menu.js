@@ -66,12 +66,15 @@ export const EXTRAS = {
 };
 const TODOS_LOS_ADICIONALES = Object.keys(EXTRAS);
 
-/* Categorías en el orden en que aparecen en la carta.
-   icon: burger | fries | addon.  compact: lista sencilla sin fotos */
+/* Categorías en el orden en que aparecen en la carta (y en el Excel del cierre).
+   icon: burger | fries | hotdog | drink | addon.
+   compact: lista sencilla sin fotos (se agregan con un toque).  sub: texto bajo el título */
 export const CATEGORIES = [
   { id: 'hamburguesas', name: 'Hamburguesas', icon: 'burger' },
   { id: 'salchipapas',  name: 'Salchipapas',  icon: 'fries' },
-  { id: 'adicionales',  name: 'Adicionales',  icon: 'addon', compact: true },
+  { id: 'perros',       name: 'Perros',       icon: 'hotdog' },
+  { id: 'bebidas',      name: 'Bebidas',      icon: 'drink', compact: true, sub: 'Para acompañar tu pedido.' },
+  { id: 'adicionales',  name: 'Adicionales',  icon: 'addon', compact: true, sub: 'Súmalos a cualquier producto al personalizarlo, o pídelos aparte.' },
 ];
 
 /* Productos
@@ -184,6 +187,44 @@ export const PRODUCTS = [
     badge: 'Caja de pizza',
     featured: true,
     extras: TODOS_LOS_ADICIONALES,
+  },
+
+  // ---------------- PERROS ----------------
+  {
+    id: 'perro-clasico',
+    category: 'perros',
+    name: 'Perro Clásico DOKO',
+    desc: 'Pan, salchicha americana, queso costeño, ripio de papa y huevo de codorniz.',
+    price: 13900,
+    image: 'assets/img/carta/perro-clasico.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+  {
+    id: 'perro-pollo',
+    category: 'perros',
+    name: 'Perro de Pollo DOKO',
+    desc: 'Pan, salchicha americana, pollo, queso doble crema y huevo de codorniz.',
+    price: 17900,
+    image: 'assets/img/carta/perro-pollo.jpg',
+    extras: TODOS_LOS_ADICIONALES,
+  },
+
+  // ---------------- BEBIDAS ----------------
+  {
+    id: 'coca-cola-personal',
+    category: 'bebidas',
+    name: 'Coca-Cola personal',
+    desc: 'Bebida personal.',
+    price: 4000,
+    image: null,
+  },
+  {
+    id: 'coca-cola-1-5',
+    category: 'bebidas',
+    name: 'Coca-Cola 1.5 L',
+    desc: 'Botella de 1.5 litros.',
+    price: 9000,
+    image: null,
   },
 
   // ---------------- ADICIONALES (se generan solos desde EXTRAS) ----------------

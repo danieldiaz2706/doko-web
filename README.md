@@ -7,7 +7,7 @@ Los clientes ven la carta, personalizan sus productos, arman el pedido y lo env�
 
 ## ✨ Qué hace
 
-- **Carta oficial interactiva**: 5 hamburguesas, 5 salchipapas y 16 adicionales, con las fotos de la carta, buscador y pestañas que siguen el scroll.
+- **Carta oficial interactiva**: 5 hamburguesas, 5 salchipapas, 2 perros, 2 bebidas (Coca-Cola) y 16 adicionales, con las fotos de la carta, buscador y pestañas que siguen el scroll.
 - **Personalización**: adicionales con precio, elecciones obligatorias (ej. La Clásica: carne o pollo, cheddar o mozzarella), notas ("sin cebolla") y cantidad.
 - **Carrito** que se guarda en el celular del cliente aunque cierre la página.
 - **Checkout en 2 pasos**: domicilio o recoger, dirección, barrio, referencia, método de pago y "¿con cuánto pagas?" para el cambio.
@@ -109,7 +109,8 @@ doko-web/
 - [x] Carta oficial con precios reales
 - [ ] Logo en alta resolución (PNG o SVG)
 - [ ] Fotos de la carta en alta resolución (las actuales salen del PDF y se ven algo suaves en pantallas grandes)
-- [ ] ¿Venden bebidas? (no aparecen en la carta)
+- [x] Bebidas: Coca-Cola personal y 1.5 L (noviembre 2026)
+- [x] Perros: Clásico y de Pollo, con todos los adicionales (noviembre 2026)
 - [ ] Confirmar métodos de pago y si el "fin de semana" incluye el viernes
 - [ ] Dominio y hosting
 

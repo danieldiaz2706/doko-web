@@ -196,7 +196,7 @@ function renderMenu() {
     const list = products.filter((p) => p.category === c.id);
     if (!list.length) return '';
     const body = c.compact
-      ? `<p class="menu__cat-sub">Súmalos a cualquier producto al personalizarlo, o pídelos aparte.</p>
+      ? `${c.sub ? `<p class="menu__cat-sub">${escapeHtml(c.sub)}</p>` : ''}
          <div class="addons">${list.map(addonRow).join('')}</div>`
       : `<div class="menu__grid">${list.map(itemCard).join('')}</div>`;
     return `
