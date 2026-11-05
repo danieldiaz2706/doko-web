@@ -4,6 +4,7 @@
    vivo y envío del pedido formateado a WhatsApp.
    ========================================================================== */
 import { CONFIG, CATEGORIES, PRODUCTS, EXTRAS, GALLERY } from './menu.js';
+import { medir } from './analitica.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -296,6 +297,21 @@ const unitPrice = (l) => productById[l.id].price + l.extras.reduce((sum, e) => s
 const cartCount = () => cart.reduce((n, l) => n + l.qty, 0);
 const cartTotal = () => cart.reduce((n, l) => n + unitPrice(l) * l.qty, 0);
 
+// Analítica: cada línea del carrito como producto de GA4 (sin la nota del cliente)
+const gaItem = (l) => {
+  const p = productById[l.id];
+  return {
+    item_id: p.id,
+    item_name: p.name,
+    item_category: categoryById[p.category].name,
+    ...(l.options.length && { item_variant: l.options.join(', ') }),
+    price: unitPrice(l),
+    quantity: l.qty,
+  };
+};
+const gaCart = () => ({ currency: 'COP', value: cartTotal(), items: cart.map(gaItem) });
+const gaRemove = (l, qty) => medir('remove_from_cart', { currency: 'COP', value: unitPrice(l) * qty, items: [{ ...gaItem(l), quantity: qty }] });
+
 function saveCart() {
   writeStore(CART_KEY, cart);
   renderCart();
@@ -307,6 +323,7 @@ function addToCart({ id, qty = 1, options = [], extras = [], note = '' }) {
   if (existing) existing.qty += qty;
   else cart.push(line);
   saveCart();
+  medir('add_to_cart', { currency: 'COP', value: unitPrice(line) * qty, items: [gaItem(line)] });
   const btn = $('.cart-btn');
   btn.classList.remove('is-bump');
   void btn.offsetWidth;
@@ -385,9 +402,14 @@ function setupCartList() {
     else if (dec) {
       const l = cart[+dec.dataset.dec];
       l.qty--;
-      if (l.qty <= 0) cart.splice(+dec.dataset.dec, 1);
-    } else if (rem) cart.splice(+rem.dataset.remove, 1);
-    else return;
+      if (l.qty <= 0) {
+        cart.splice(+dec.dataset.dec, 1);
+        gaRemove(l, 1);
+      }
+    } else if (rem) {
+      const [l] = cart.splice(+rem.dataset.remove, 1);
+      gaRemove(l, l.qty);
+    } else return;
     saveCart();
   });
 }
@@ -403,6 +425,11 @@ function openProduct(id) {
   const p = productById[id];
   if (!p) return;
   activeProduct = p;
+  medir('view_item', {
+    currency: 'COP',
+    value: p.price,
+    items: [{ item_id: p.id, item_name: p.name, item_category: categoryById[p.category].name, price: p.price, quantity: 1 }],
+  });
   const extras = (p.extras || []).filter((e) => EXTRAS[e]);
 
   productForm.innerHTML = `
@@ -563,6 +590,7 @@ function openCart() {
   renderStatus();
   if (currentStep === 'sent') showStep('items');
   openDialog(cartDialog);
+  medir('view_cart', gaCart());
 }
 
 const getMode = () => checkoutForm.elements.mode.value;
@@ -678,6 +706,8 @@ function sendOrder() {
   const id = orderId();
   const url = waLink(buildMessage(data, id));
   lastOrder = { id, url };
+  // "purchase" = pedido enviado a WhatsApp (no confirma que se pagó)
+  medir('purchase', { ...gaCart(), transaction_id: id, shipping_tier: data.mode, payment_type: data.payment });
 
   $('[data-order-id]').textContent = `#${id}`;
   $('[data-wa-retry]').href = url;
@@ -703,6 +733,7 @@ function setupCheckout() {
 
   $('[data-checkout-next]').addEventListener('click', () => {
     showStep('checkout');
+    medir('begin_checkout', gaCart());
     setTimeout(() => {
       const first = $$('input[required]', checkoutForm).find((i) => !i.closest('[hidden]') && !i.value.trim());
       first?.focus({ preventScroll: true });
@@ -835,4 +866,11 @@ renderCart();
 showStep('items');
 setupReveal();
 
-$('[data-search]').addEventListener('input', (e) => applySearch(e.target.value));
+let searchTimer;
+$('[data-search]').addEventListener('input', (e) => {
+  applySearch(e.target.value);
+  // Se mide lo que buscan cuando dejan de escribir, no cada letra
+  clearTimeout(searchTimer);
+  const term = e.target.value.trim().toLowerCase();
+  if (term.length >= 2) searchTimer = setTimeout(() => medir('search', { search_term: term }), 1500);
+});

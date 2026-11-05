@@ -1,4 +1,21 @@
-# Netlify: el panel de cocina no debe aparecer en Google y su service worker no se guarda en caché
+# Netlify: encabezados de la página
+#
+# Seguridad para toda la página (clientes y panel de cocina):
+# - HTTPS siempre, sin "adivinar" tipos de archivo y sin dejar que otra página la meta en un marco.
+# - Content-Security-Policy: solo se carga código de la propia página, de Firebase (gstatic),
+#   Google Analytics (googletagmanager) y la librería de Excel del panel (jsdelivr).
+#   Si agregas un servicio externo nuevo (otro script, fuente o API), hay que sumarlo aquí.
+# - Referrer-Policy debe seguir en strict-origin-when-cross-origin: Firebase revisa de qué
+#   página vienen las peticiones si la clave de la API se limita al dominio.
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'
+
+# El panel de cocina no debe aparecer en Google y su service worker no se guarda en caché
 /cocina/*
   X-Robots-Tag: noindex, nofollow
 /cocina/sw.js
