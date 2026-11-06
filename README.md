@@ -45,9 +45,13 @@ python -m http.server 5174
 
 Luego abre `http://localhost:5174`.
 
-## 🚀 Publicarla gratis
+## 🚀 Publicación
 
-Cualquiera de estas opciones sirve (todas aceptan repos privados):
+**En vivo:** https://dokofoodwebsite.netlify.app (Netlify publica solo cada vez que se sube un cambio a `main`).
+
+Para que aparezca en Google: [Google Search Console](https://search.google.com/search-console) → agregar propiedad "Prefijo de URL" con la dirección de arriba → verificar con la etiqueta HTML → **Sitemaps** → enviar `sitemap.xml`.
+
+Si algún día se cambia de hosting, cualquiera de estas opciones sirve (todas aceptan repos privados):
 
 1. **Netlify** → "Add new site" → "Import from Git" → elegir este repo. Sin build, carpeta raíz `/`.
 2. **Vercel** → "New Project" → importar el repo → Framework: *Other*.
@@ -101,6 +105,7 @@ doko-web/
 ├── manifest.webmanifest    # Para "instalar" la página en el celular
 ├── assets/img/             # Logo, galería de Instagram y carta/ (fotos de la carta oficial)
 ├── cocina/                 # Panel de pedidos para caja y cocina (ver cocina/LEEME.md)
+├── robots.txt, sitemap.xml # Para que Google encuentre la página
 └── _headers                # Reglas de Netlify: seguridad y el panel no aparece en Google
 ```
 
@@ -112,7 +117,8 @@ doko-web/
 - [x] Bebidas: Coca-Cola personal y 1.5 L (noviembre 2026)
 - [x] Perros: Clásico y de Pollo, con todos los adicionales (noviembre 2026)
 - [ ] Confirmar métodos de pago y si el "fin de semana" incluye el viernes
-- [ ] Dominio y hosting
+- [x] Hosting (Netlify, noviembre 2026)
+- [ ] Dominio propio (opcional, ej. `dokofood.com`)
 
 ---
 
