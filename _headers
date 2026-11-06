@@ -20,3 +20,10 @@
   X-Robots-Tag: noindex, nofollow
 /cocina/sw.js
   Cache-Control: no-cache
+
+# Fotos y logos: el celular del cliente los guarda 30 días y no los vuelve a descargar en cada visita
+# (menos datos y menos créditos de Netlify). Por eso, si cambias una foto, súbela con OTRO nombre
+# (ej. la-monster-2.webp) y actualiza la ruta en js/menu.js; si usas el mismo nombre, algunos
+# clientes seguirían viendo la foto vieja hasta 30 días.
+/assets/*
+  Cache-Control: public, max-age=2592000

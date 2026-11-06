@@ -27,12 +27,14 @@ Todo está en **un solo archivo**: [`js/menu.js`](js/menu.js). No hace falta toc
 | Agregar un producto             | Copia un bloque `{ id: … }` y edítalo          |
 | Marcar un producto como agotado | Agrega `available: false`                      |
 | Ponerlo en "Los que la rompen"  | `featured: true`                               |
-| Cambiar la foto                 | Sube la imagen a `assets/img/` y pon su ruta en `image` |
+| Cambiar la foto                 | Sube la imagen a `assets/img/carta/` **con un nombre nuevo** (WebP, 480×480) y pon su ruta en `image` |
 | Cambiar precios de adicionales  | Objeto `EXTRAS` (se actualizan en toda la página) |
 | Cambiar horario                 | `CONFIG.schedule` (0 = domingo … 6 = sábado)   |
 | Cambiar WhatsApp                | `CONFIG.whatsapp` (solo números, con 57)       |
 | Métodos de pago                 | `CONFIG.paymentMethods`                        |
 
+> 🖼️ Las fotos están en **WebP** (pesan un 30 % menos que en JPG) y los celulares las guardan 30 días (ver [`_headers`](_headers)). Por eso una foto cambiada debe llevar otro nombre, o algunos clientes seguirán viendo la vieja. `la-monster.jpg` se queda en JPG porque es la foto que sale al compartir el enlace.
+>
 > ✅ Productos, descripciones, precios y fotos tomados de la **carta oficial de DOKO** (noviembre 2026). La carta completa en imagen está en `assets/img/carta/carta-completa.jpg` y se enlaza desde la página.
 
 ## 💻 Verla en el computador

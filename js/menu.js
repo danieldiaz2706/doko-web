@@ -92,7 +92,7 @@ export const PRODUCTS = [
     name: 'La Clásica DOKO',
     desc: 'Carne o pollo desmechado en salsa tártara, queso cheddar o queso mozzarella, tocineta, vegetales y salsas.',
     price: 19900,
-    image: 'assets/img/carta/la-clasica.jpg',
+    image: 'assets/img/carta/la-clasica.webp',
     options: [
       { label: 'Proteína', choices: ['Carne', 'Pollo desmechado en salsa tártara'] },
       { label: 'Queso', choices: ['Queso cheddar', 'Queso mozzarella'] },
@@ -105,7 +105,7 @@ export const PRODUCTS = [
     name: 'La Dulce Brava',
     desc: 'Carne, madurito, tocineta, queso mozzarella y salsas.',
     price: 22900,
-    image: 'assets/img/carta/dulce-brava.jpg',
+    image: 'assets/img/carta/dulce-brava.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -114,7 +114,7 @@ export const PRODUCTS = [
     name: 'La Mixta DOKO',
     desc: 'Carne, pollo desmechado en salsa tártara, tocineta, queso mozzarella, vegetales y salsas.',
     price: 25900,
-    image: 'assets/img/carta/la-mixta.jpg',
+    image: 'assets/img/carta/la-mixta.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -123,7 +123,7 @@ export const PRODUCTS = [
     name: 'La Gringa',
     desc: 'Doble carne, doble queso cheddar, tocineta, pepinillos, cebolla caramelizada y salsa americana.',
     price: 27900,
-    image: 'assets/img/carta/la-gringa.jpg',
+    image: 'assets/img/carta/la-gringa.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -132,7 +132,7 @@ export const PRODUCTS = [
     name: 'La Monster',
     desc: 'Doble carne, pollo desmechado, queso cheddar, queso mozzarella, tocineta, vegetales y salsas.',
     price: 31900,
-    image: 'assets/img/carta/la-monster.jpg',
+    image: 'assets/img/carta/la-monster.webp',
     badge: 'Top',
     featured: true,
     extras: TODOS_LOS_ADICIONALES,
@@ -145,7 +145,7 @@ export const PRODUCTS = [
     name: 'La Atrevida',
     desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, queso mozzarella, huevitos, vegetales y salsas.',
     price: 33900,
-    image: 'assets/img/carta/la-atrevida.jpg',
+    image: 'assets/img/carta/la-atrevida.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -154,7 +154,7 @@ export const PRODUCTS = [
     name: 'La Exquisita',
     desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, maicito (queso fundido con trozos de tocineta y maíz), papitas ripio, huevitos, vegetales y salsas.',
     price: 39900,
-    image: 'assets/img/carta/la-exquisita.jpg',
+    image: 'assets/img/carta/la-exquisita.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -163,7 +163,7 @@ export const PRODUCTS = [
     name: 'La Bestia',
     desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, carne de hamburguesa en trozos, madurito, queso mozzarella, huevitos y vegetales.',
     price: 43900,
-    image: 'assets/img/carta/la-bestia.jpg',
+    image: 'assets/img/carta/la-bestia.webp',
     badge: 'Top',
     featured: true,
     extras: TODOS_LOS_ADICIONALES,
@@ -174,7 +174,7 @@ export const PRODUCTS = [
     name: 'La Traviesa',
     desc: 'Papas a la francesa, salchicha americana, pollo desmechado en salsa tártara, pulled pork, salchicha ranchera, madurito, queso mozzarella, huevitos y salsa tártara.',
     price: 53900,
-    image: 'assets/img/carta/la-traviesa.jpg',
+    image: 'assets/img/carta/la-traviesa.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -183,7 +183,7 @@ export const PRODUCTS = [
     name: 'La Brutal DOKO',
     desc: 'En caja de pizza. Papas a la francesa, salchicha americana, chorizo, pollo desmechado en salsa tártara, carne de hamburguesa en trozos, madurito, queso mozzarella, huevitos, vegetales y salsas.',
     price: 81900,
-    image: 'assets/img/carta/la-brutal.jpg',
+    image: 'assets/img/carta/la-brutal.webp',
     badge: 'Caja de pizza',
     featured: true,
     extras: TODOS_LOS_ADICIONALES,
@@ -196,7 +196,7 @@ export const PRODUCTS = [
     name: 'Perro Clásico DOKO',
     desc: 'Pan, salchicha americana, queso costeño, ripio de papa, huevo de codorniz y salsas.',
     price: 13900,
-    image: 'assets/img/carta/perro-clasico.jpg',
+    image: 'assets/img/carta/perro-clasico.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
   {
@@ -205,7 +205,7 @@ export const PRODUCTS = [
     name: 'Perro de Pollo DOKO',
     desc: 'Pan, salchicha americana, pollo, queso doble crema, tocineta, huevo de codorniz y salsas.',
     price: 17900,
-    image: 'assets/img/carta/perro-pollo.jpg',
+    image: 'assets/img/carta/perro-pollo.webp',
     extras: TODOS_LOS_ADICIONALES,
   },
 
@@ -240,11 +240,11 @@ export const PRODUCTS = [
 
 /* Galería de Instagram (fotos en assets/img/galeria) */
 export const GALLERY = [
-  { img: 'assets/img/galeria/reel-5.jpg', url: 'https://www.instagram.com/dokofood_/reel/DenM_5aKCpJ/', alt: 'Hamburguesa doble con queso cheddar' },
-  { img: 'assets/img/galeria/reel-3.jpg', url: 'https://www.instagram.com/dokofood_/reel/DfIi4dxKFce/', alt: 'Perro con tocineta y huevo de codorniz' },
-  { img: 'assets/img/galeria/reel-7.jpg', url: 'https://www.instagram.com/dokofood_/reel/DdpbWTCqpTJ/', alt: 'Salchipapa con salsa de ajo y huevos de codorniz' },
-  { img: 'assets/img/galeria/reel-2.jpg', url: 'https://www.instagram.com/dokofood_/reel/DfNuRU6KrAa/', alt: 'Perro gigante DOKO' },
-  { img: 'assets/img/galeria/reel-1.jpg', url: 'https://www.instagram.com/dokofood_/reel/DQkoCyWDWUT/', alt: 'Salchipapa mixta DOKO' },
-  { img: 'assets/img/galeria/reel-6.jpg', url: 'https://www.instagram.com/dokofood_/reel/Dd7aTaYqsAc/', alt: 'Salchipapa con chorizo y maduro' },
-  { img: 'assets/img/galeria/reel-4.jpg', url: 'https://www.instagram.com/dokofood_/reel/De2ro1FqcKI/', alt: 'Un día de compras y producción para DOKO' },
+  { img: 'assets/img/galeria/reel-5.webp', url: 'https://www.instagram.com/dokofood_/reel/DenM_5aKCpJ/', alt: 'Hamburguesa doble con queso cheddar' },
+  { img: 'assets/img/galeria/reel-3.webp', url: 'https://www.instagram.com/dokofood_/reel/DfIi4dxKFce/', alt: 'Perro con tocineta y huevo de codorniz' },
+  { img: 'assets/img/galeria/reel-7.webp', url: 'https://www.instagram.com/dokofood_/reel/DdpbWTCqpTJ/', alt: 'Salchipapa con salsa de ajo y huevos de codorniz' },
+  { img: 'assets/img/galeria/reel-2.webp', url: 'https://www.instagram.com/dokofood_/reel/DfNuRU6KrAa/', alt: 'Perro gigante DOKO' },
+  { img: 'assets/img/galeria/reel-1.webp', url: 'https://www.instagram.com/dokofood_/reel/DQkoCyWDWUT/', alt: 'Salchipapa mixta DOKO' },
+  { img: 'assets/img/galeria/reel-6.webp', url: 'https://www.instagram.com/dokofood_/reel/Dd7aTaYqsAc/', alt: 'Salchipapa con chorizo y maduro' },
+  { img: 'assets/img/galeria/reel-4.webp', url: 'https://www.instagram.com/dokofood_/reel/De2ro1FqcKI/', alt: 'Un día de compras y producción para DOKO' },
 ];
